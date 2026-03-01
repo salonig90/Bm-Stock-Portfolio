@@ -13,6 +13,21 @@ class Stocks(models.Model):
     discount_pct = models.FloatField(default=0)
     opportunity_level = models.CharField(max_length=50, default="Low Opportunity")
 
+    def save(self, *args, **kwargs):
+        # 1. Automatically calculate Discount Percentage
+        if self.high_price and self.high_price > 0:
+            self.discount_pct = round(((self.high_price - self.price) / self.high_price * 100), 2)
+        
+        # 2. Automatically determine Opportunity Level
+        if self.discount_pct > 20:
+            self.opportunity_level = "Strong Opportunity"
+        elif 10 <= self.discount_pct <= 20:
+            self.opportunity_level = "Moderate Opportunity"
+        else:
+            self.opportunity_level = "Low Opportunity"
+            
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.name} ({self.symbol})"
 

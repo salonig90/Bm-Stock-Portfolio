@@ -11,6 +11,9 @@ class SectorListAPIView(APIView):
     permission_classes = [permissions.AllowAny]
     def get(self, request):
         sectors = list(Stocks.objects.exclude(sector="Unknown").values_list("sector", flat=True).distinct())
+        # If no sectors found, return all distinct sectors including Unknown
+        if not sectors:
+            sectors = list(Stocks.objects.values_list("sector", flat=True).distinct())
         return Response(sectors)
 
 
