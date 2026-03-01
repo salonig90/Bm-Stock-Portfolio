@@ -10,7 +10,7 @@ from django.db.models import Q
 class SectorListAPIView(APIView):
     permission_classes = [permissions.AllowAny]
     def get(self, request):
-        sectors = list(Stocks.objects.values_list("sector", flat=True).distinct())
+        sectors = list(Stocks.objects.exclude(sector="Unknown").values_list("sector", flat=True).distinct())
         return Response(sectors)
 
 

@@ -45,10 +45,13 @@ class LoginAPIView(APIView):
             if check_password(password, staff.password):
                 token = create_token(staff)
                 return Response({'token': token, 'username': staff.username})
+            else:
+                return Response({'error': 'Invalid password'}, status=status.HTTP_401_UNAUTHORIZED)
+                
         except Staff.DoesNotExist:
-            pass
-            
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'User not found'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class StaffAPIView(ListCreateAPIView):
     queryset = Staff.objects.all()

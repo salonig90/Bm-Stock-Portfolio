@@ -17,7 +17,11 @@ function Login() {
         navigate("/portfolio");
       })
       .catch((error) => {
-        alert(error.response?.data?.error || "Invalid credentials");
+        if (!error.response) {
+          alert("Cannot connect to backend server. Please make sure the Django server is running on port 8000.");
+        } else {
+          alert(error.response?.data?.error || "Invalid credentials");
+        }
       });
   };
 

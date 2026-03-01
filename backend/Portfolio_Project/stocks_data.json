@@ -1,0 +1,242 @@
+[
+  {
+    "symbol": "TCS.NS",
+    "name": "TCS",
+    "sector": "Tata",
+    "price": 1075.23,
+    "market_cap": 817127046461,
+    "high_52w": 1370.44,
+    "low_52w": 1049.52,
+    "pe_ratio": 24.87
+  },
+  {
+    "symbol": "INFY.NS",
+    "name": "INFY",
+    "sector": "IT Sector",
+    "price": 1031.34,
+    "market_cap": 478193874687,
+    "high_52w": 1384.29,
+    "low_52w": 961.64,
+    "pe_ratio": 25.44
+  },
+  {
+    "symbol": "WIPRO.NS",
+    "name": "WIPRO",
+    "sector": "IT Sector",
+    "price": 772.5,
+    "market_cap": 309632722544,
+    "high_52w": 888.99,
+    "low_52w": 705.62,
+    "pe_ratio": 20.01
+  },
+  {
+    "symbol": "HCLTECH.NS",
+    "name": "HCLTECH",
+    "sector": "IT Sector",
+    "price": 786.78,
+    "market_cap": 555586260108,
+    "high_52w": 1006.61,
+    "low_52w": 773.86,
+    "pe_ratio": 36.92
+  },
+  {
+    "symbol": "TECHM.NS",
+    "name": "TECHM",
+    "sector": "IT Sector",
+    "price": 2206.7,
+    "market_cap": 560101302038,
+    "high_52w": 3010.36,
+    "low_52w": 1889.6,
+    "pe_ratio": 37.33
+  },
+  {
+    "symbol": "MARUTI.NS",
+    "name": "MARUTI",
+    "sector": "Automobile Sector",
+    "price": 4337.69,
+    "market_cap": 420243761867,
+    "high_52w": 4624.04,
+    "low_52w": 3683.18,
+    "pe_ratio": 37.19
+  },
+  {
+    "symbol": "TATAMOTORS.NS",
+    "name": "TATAMOTORS",
+    "sector": "Automobile Sector",
+    "price": 3871.03,
+    "market_cap": 812758247521,
+    "high_52w": 4304.33,
+    "low_52w": 3452.74,
+    "pe_ratio": 21.27
+  },
+  {
+    "symbol": "M&M.NS",
+    "name": "M&M",
+    "sector": "Automobile Sector",
+    "price": 3848.18,
+    "market_cap": 666727371765,
+    "high_52w": 5010.51,
+    "low_52w": 2371.19,
+    "pe_ratio": 20.09
+  },
+  {
+    "symbol": "HEROMOTOCO.NS",
+    "name": "HEROMOTOCO",
+    "sector": "Automobile Sector",
+    "price": 4556.81,
+    "market_cap": 406077625519,
+    "high_52w": 4650.97,
+    "low_52w": 2896.43,
+    "pe_ratio": 43.53
+  },
+  {
+    "symbol": "BAJAJ-AUTO.NS",
+    "name": "BAJAJ-AUTO",
+    "sector": "Automobile Sector",
+    "price": 782.42,
+    "market_cap": 138355191167,
+    "high_52w": 890.95,
+    "low_52w": 653.08,
+    "pe_ratio": 29.88
+  },
+  {
+    "symbol": "HDFCBANK.NS",
+    "name": "HDFCBANK",
+    "sector": "Banking Sector",
+    "price": 3320.45,
+    "market_cap": 607902145446,
+    "high_52w": 3935.57,
+    "low_52w": 2249.73,
+    "pe_ratio": 34.07
+  },
+  {
+    "symbol": "ICICIBANK.NS",
+    "name": "ICICIBANK",
+    "sector": "Banking Sector",
+    "price": 2069.41,
+    "market_cap": 743264183387,
+    "high_52w": 2267.37,
+    "low_52w": 1425.5,
+    "pe_ratio": 18.1
+  },
+  {
+    "symbol": "SBIN.NS",
+    "name": "SBIN",
+    "sector": "Banking Sector",
+    "price": 213.06,
+    "market_cap": 75340914804,
+    "high_52w": 288.22,
+    "low_52w": 151.04,
+    "pe_ratio": 40.63
+  },
+  {
+    "symbol": "AXISBANK.NS",
+    "name": "AXISBANK",
+    "sector": "Banking Sector",
+    "price": 460.09,
+    "market_cap": 492755321247,
+    "high_52w": 501.11,
+    "low_52w": 310.05,
+    "pe_ratio": 14.14
+  },
+  {
+    "symbol": "KOTAKBANK.NS",
+    "name": "KOTAKBANK",
+    "sector": "Banking Sector",
+    "price": 580.01,
+    "market_cap": 261116576117,
+    "high_52w": 604.81,
+    "low_52w": 450.12,
+    "pe_ratio": 49.49
+  },
+  {
+    "symbol": "ADANIENT.NS",
+    "name": "ADANIENT",
+    "sector": "Adani",
+    "price": 2382.53,
+    "market_cap": 351311495764,
+    "high_52w": 2657.01,
+    "low_52w": 2122.95,
+    "pe_ratio": 13.05
+  },
+  {
+    "symbol": "ADANIPORTS.NS",
+    "name": "ADANIPORTS",
+    "sector": "Adani",
+    "price": 484.08,
+    "market_cap": 258503356824,
+    "high_52w": 614.51,
+    "low_52w": 377.51,
+    "pe_ratio": 25.18
+  },
+  {
+    "symbol": "ADANIGREEN.NS",
+    "name": "ADANIGREEN",
+    "sector": "Adani",
+    "price": 1608.88,
+    "market_cap": 553225950731,
+    "high_52w": 1747.32,
+    "low_52w": 1212.73,
+    "pe_ratio": 15.81
+  },
+  {
+    "symbol": "ADANIPOWER.NS",
+    "name": "ADANIPOWER",
+    "sector": "Adani",
+    "price": 2039.27,
+    "market_cap": 926652239495,
+    "high_52w": 2844.27,
+    "low_52w": 1259.38,
+    "pe_ratio": 39.08
+  },
+  {
+    "symbol": "ADANITRANS.NS",
+    "name": "ADANITRANS",
+    "sector": "Adani",
+    "price": 3665.49,
+    "market_cap": 430947752799,
+    "high_52w": 4595.12,
+    "low_52w": 2922.17,
+    "pe_ratio": 30.08
+  },
+  {
+    "symbol": "TATASTEEL.NS",
+    "name": "TATASTEEL",
+    "sector": "Tata",
+    "price": 1490.76,
+    "market_cap": 588228929591,
+    "high_52w": 2006.14,
+    "low_52w": 1322.15,
+    "pe_ratio": 40.01
+  },
+  {
+    "symbol": "TATAPOWER.NS",
+    "name": "TATAPOWER",
+    "sector": "Tata",
+    "price": 4708.15,
+    "market_cap": 973848429546,
+    "high_52w": 5367.88,
+    "low_52w": 3815.58,
+    "pe_ratio": 47.33
+  },
+  {
+    "symbol": "TITAN.NS",
+    "name": "TITAN",
+    "sector": "Tata",
+    "price": 4206.26,
+    "market_cap": 86963000983,
+    "high_52w": 5205.29,
+    "low_52w": 3321.37,
+    "pe_ratio": 45.18
+  },
+  {
+    "symbol": "TATACONSUM.NS",
+    "name": "TATACONSUM",
+    "sector": "Tata",
+    "price": 4951.8,
+    "market_cap": 102475065288,
+    "high_52w": 6577.45,
+    "low_52w": 3503.43,
+    "pe_ratio": 45.99
+  }
+]
