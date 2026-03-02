@@ -2,7 +2,9 @@ import os
 import sys
 
 # Set yfinance cache dir to avoid "unable to open database file"
-os.environ['YFINANCE_CACHE_DIR'] = os.path.join(os.path.expanduser('~'), '.yf_cache_stockwhiz')
+os.environ['YFINANCE_CACHE_DIR'] = os.path.join(os.getcwd(), '.yf_cache')
+import yfinance as yf
+yf.set_tz_cache_location(os.path.join(os.getcwd(), '.yf_cache')) # Extra safety for some yf versions
 if not os.path.exists(os.environ['YFINANCE_CACHE_DIR']):
     try:
         os.makedirs(os.environ['YFINANCE_CACHE_DIR'])
