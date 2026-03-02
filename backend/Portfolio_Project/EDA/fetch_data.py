@@ -141,66 +141,7 @@ def get_financial_data(ticker_symbol):
         print(f"Error fetching {ticker_symbol}: {e}")
         return None, None
 
-def create_opportunity_graph(plot_data): 
-    """ 
-    Opportunity Graph: Revenue Growth vs PE Ratio 
-    """ 
-    import pandas as pd
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-
-    df_plot = pd.DataFrame( 
-        [d for d in plot_data if d['PE'] is not None and d['Growth'] is not None] 
-    ) 
-
-    if df_plot.empty: 
-        print("Not enough data to create the opportunity graph.") 
-        return 
-
-    df_plot = df_plot.reset_index(drop=True) 
-
-    plt.figure(figsize=(14, 10)) 
-    sns.set_style("whitegrid") 
-    
-    hue_col = 'Sector' if 'Sector' in df_plot.columns else None
-    
-    sns.scatterplot( 
-        data=df_plot, 
-        x='Growth', 
-        y='PE', 
-        hue=hue_col,
-        s=200, 
-        alpha=0.7, 
-        edgecolor='black',
-        palette='viridis' if hue_col else None
-    ) 
-    
-    for _, row in df_plot.iterrows(): 
-        plt.text( 
-            row['Growth'] + 0.5, 
-            row['PE'] + 0.5, 
-            row['Ticker'], 
-            fontsize=9, 
-            weight='bold' 
-        ) 
-
-    plt.axvline(df_plot['Growth'].median(), color='red', linestyle='--', alpha=0.5, label='Median Growth') 
-    plt.axhline(df_plot['PE'].median(), color='green', linestyle='--', alpha=0.5, label='Median PE') 
-
-    x_max = plt.xlim()[1] 
-    y_max = plt.ylim()[1] 
-    plt.text(x_max*0.75, y_max*0.1, "OPPORTUNITY\n(High Growth, Low PE)", color='green', fontweight='bold', ha='center') 
-    plt.text(x_max*0.1, y_max*0.9, "OVERVALUED?", color='red', fontweight='bold', ha='center') 
-
-    plt.title('Consolidated Opportunity Graph: Revenue Growth vs PE Ratio', fontsize=16) 
-    plt.xlabel('Revenue Growth (%)') 
-    plt.ylabel('PE Ratio (TTM)') 
-    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    
-    plt.tight_layout() 
-    plt.savefig('consolidated_opportunity_graph.png') 
-    print("\nConsolidated opportunity graph saved to 'consolidated_opportunity_graph.png'") 
-    plt.close()
+# Removed create_opportunity_graph logic as per request
 
 # ✅ Grouped Industry Sectors (10 stocks each)
 INDUSTRY_SECTORS = {
@@ -223,6 +164,9 @@ INDUSTRY_SECTORS = {
     "Adani": [
         'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANITRANS.NS',
         'ADANITOTAL.NS', 'AWL.NS', 'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS'
+    ],
+    "Commodities": [
+        'GC=F', 'SI=F'
     ]
 }
 
@@ -292,7 +236,7 @@ def main():
     print("="*110) 
     
     print("\nSUCCESS: Database updated with stocks from fetch_data.py!")
-    create_opportunity_graph(plot_data) 
+    # create_opportunity_graph(plot_data) # Logic removed as per request
 
 if __name__ == "__main__": 
     main() 

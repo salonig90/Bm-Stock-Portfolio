@@ -59,7 +59,10 @@ function Sectors() {
                   fontSize: '3rem',
                   marginBottom: '10px'
                 }}>
-                  {sector.includes("IT") ? "💻" : sector.includes("Auto") ? "🚗" : sector.includes("Bank") ? "🏦" : "📈"}
+                  {sector.includes("IT") ? "💻" : 
+                   sector.includes("Auto") ? "🚗" : 
+                   sector.includes("Bank") ? "🏦" : 
+                   sector.includes("Commodities") ? "🪙" : "📈"}
                 </div>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0, color: '#333' }}>{sector}</h3>
               </div>

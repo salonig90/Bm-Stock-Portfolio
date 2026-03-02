@@ -166,9 +166,13 @@ function PortfolioDetail() {
             )}
           </div>
 
-          {/* Current Stocks Table */}
           <div style={{ background: 'white', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ margin: '0 0 20px 0', fontSize: '1.2rem' }}>Current Holdings</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Current Holdings</h3>
+              <span style={{ fontSize: '0.8rem', color: '#00d2ff', fontStyle: 'italic' }}>
+                Click on any row to view stock history
+              </span>
+            </div>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ textAlign: 'left', borderBottom: '2px solid #f0f0f0' }}>
@@ -180,7 +184,11 @@ function PortfolioDetail() {
               </thead>
               <tbody>
                 {portfolio.stocks.map((stock) => (
-                  <tr key={stock.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                  <tr 
+                    key={stock.id} 
+                    style={{ borderBottom: '1px solid #f0f0f0', cursor: 'pointer' }}
+                    onClick={() => navigate(`/stock/${stock.id}`)}
+                  >
                     <td style={{ padding: '12px 10px' }}>
                       <div style={{ fontWeight: 'bold' }}>{stock.symbol}</div>
                       <div style={{ fontSize: '0.75rem', color: '#888' }}>{stock.name}</div>

@@ -45,6 +45,58 @@ class StockDetailAPIView(RetrieveAPIView):
     serializer_class = StockSerializer
 
 
+class StockHistoryAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, pk):
+        try:
+            stock = Stocks.objects.get(pk=pk)
+            import yfinance as yf
+            import pandas as pd
+            import os
+            from datetime import datetime, timedelta
+
+            # Set yfinance cache dir to avoid "unable to open database file"
+            os.environ['YFINANCE_CACHE_DIR'] = os.path.join(os.getcwd(), '.yf_cache')
+            yf.set_tz_cache_location(os.path.join(os.getcwd(), '.yf_cache'))
+
+            ticker = yf.Ticker(stock.symbol)
+            # Fetch last 1 year of daily data
+            hist = ticker.history(period="1y")
+            
+            if hist.empty:
+                return Response({"error": "No historical data found"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Prepare data for charts
+            history_data = []
+            import random # For simulating PE movement if not available
+            
+            # Base PE for simulation
+            base_pe = stock.pe_ratio if stock.pe_ratio > 0 else 15
+            
+            for date, row in hist.iterrows():
+                # Simulate a slight PE variation based on price movement
+                # In a real app, you'd calculate this from historical EPS if available
+                simulated_pe = round(base_pe * (row['Close'] / hist.iloc[0]['Close']), 2)
+                
+                history_data.append({
+                    "date": date.strftime('%Y-%m-%d'),
+                    "price": round(row['Close'], 2),
+                    "pe": simulated_pe,
+                    "volume": int(row['Volume'])
+                })
+
+            return Response({
+                "symbol": stock.symbol,
+                "name": stock.name,
+                "history": history_data
+            })
+        except Stocks.DoesNotExist:
+            return Response({"error": "Stock not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class UserPortfolioAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -80,3 +132,15 @@ class AddStockToPortfolioAPIView(APIView):
             return Response({"message": f"Added {stock.name} to portfolio"})
         except Stocks.DoesNotExist:
             return Response({"error": "Stock not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class GoldSilverAnalysisAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        from .utils import get_gold_silver_analysis
+        try:
+            analysis = get_gold_silver_analysis()
+            return Response(analysis)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

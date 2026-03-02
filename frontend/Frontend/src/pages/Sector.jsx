@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
 
 function Sector() {
@@ -70,8 +70,14 @@ function Sector() {
                 padding: '25px',
                 borderRadius: '15px',
                 boxShadow: '0 10px 20px rgba(0,0,0,0.05)',
-                border: '1px solid #eee'
-              }}>
+                border: '1px solid #eee',
+                transition: 'transform 0.2s',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              onClick={() => navigate(`/stock/${stock.id}`)}
+              >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px' }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '1.3rem' }}>{stock.symbol}</h3>
@@ -94,8 +100,21 @@ function Sector() {
                   <div style={{ fontSize: '0.8rem', color: '#888' }}>PE Ratio: {stock.pe_ratio}</div>
                 </div>
 
+                <div style={{ 
+                  textAlign: 'center', 
+                  fontSize: '0.8rem', 
+                  color: '#00d2ff', 
+                  marginBottom: '15px',
+                  fontStyle: 'italic'
+                }}>
+                  Click card to view detailed history
+                </div>
+
                 <button 
-                  onClick={() => addToPortfolio(stock.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addToPortfolio(stock.id);
+                  }}
                   style={{
                     width: '100%',
                     padding: '10px',

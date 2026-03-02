@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-do
 import Home from "./pages/Home";
 import Sectors from "./pages/Sectors";
 import Sector from "./pages/Sector";
+import StockDetail from "./pages/StockDetail";
+import MarketAnalysis from "./pages/MarketAnalysis";
 import PortfolioDetail from "./pages/PortfolioDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -40,6 +42,7 @@ function Navbar() {
       <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
         <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Home</Link>
         <Link to="/sectors" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Sectors</Link>
+        <Link to="/analysis" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Market Analysis</Link>
         <Link to="/portfolio" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>My Portfolio</Link>
         
         {username ? (
@@ -85,6 +88,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/sectors" element={<Sectors />} />
         <Route path="/sector/:name" element={<Sector />} />
+        <Route path="/stock/:id" element={<StockDetail />} />
+        <Route path="/analysis" element={<MarketAnalysis />} />
         <Route path="/portfolio" element={<PortfolioDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
