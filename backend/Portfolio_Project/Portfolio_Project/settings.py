@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'Staff',
     'Portfolio',
     'EDA',
+    'ML',
 ]
 
 MIDDLEWARE = [

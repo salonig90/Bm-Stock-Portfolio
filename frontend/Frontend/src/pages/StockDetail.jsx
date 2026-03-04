@@ -20,6 +20,7 @@ function StockDetail() {
   const navigate = useNavigate();
   const [stock, setStock] = useState(null);
   const [history, setHistory] = useState([]);
+  const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -33,6 +34,7 @@ function StockDetail() {
       .then(([detailRes, historyRes]) => {
         setStock(detailRes.data);
         setHistory(historyRes.data.history);
+        setPrediction(historyRes.data.prediction);
         setLoading(false);
       })
       .catch((err) => {
@@ -89,80 +91,53 @@ function StockDetail() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px' }}>
-          {/* Price Chart */}
-          <div style={{ background: 'white', padding: '25px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ margin: '0 0 20px 0', color: '#444' }}>Price History (1 Year)</h3>
-            <div style={{ width: '100%', height: '300px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={history}>
-                  <defs>
-                    <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#00d2ff" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#00d2ff" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis dataKey="date" hide />
-                  <YAxis domain={['auto', 'auto']} orientation="right" tick={{fontSize: 12}} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
-                    formatter={(value) => [`₹${value}`, 'Price']}
-                  />
-                  <Area type="monotone" dataKey="price" stroke="#00d2ff" fillOpacity={1} fill="url(#colorPrice)" strokeWidth={2} />
-                </AreaChart>
-              </ResponsiveContainer>
+        {/* Prediction Section */}
+        {prediction && (
+          <div style={{ background: 'white', padding: '30px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, color: '#444' }}>AI Price Prediction (Next 1 Week)</h3>
+              <div style={{ 
+                background: '#e6f7ff', 
+                padding: '10px 20px', 
+                borderRadius: '12px',
+                border: '1px solid #91d5ff'
+              }}>
+                <span style={{ fontSize: '0.9rem', color: '#0050b3' }}>Next Day Predicted: </span>
+                <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#0050b3' }}>₹{prediction.next_day_prediction}</span>
+              </div>
+            </div>
+            
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <img 
+                src={`data:image/png;base64,${prediction.prediction_plot}`} 
+                alt="Stock Prediction Graph" 
+                style={{ maxWidth: '100%', height: 'auto', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+              />
+            </div>
+            
+            <div style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px' }}>
+              {prediction.weekly_predictions.map((p, index) => (
+                <div key={index} style={{ 
+                  padding: '10px', 
+                  background: '#f0f2f5', 
+                  borderRadius: '8px', 
+                  textAlign: 'center',
+                  border: '1px solid #d9d9d9'
+                }}>
+                  <div style={{ fontSize: '0.75rem', color: '#8c8c8c' }}>{new Date(p.date).toLocaleDateString('en-IN', { weekday: 'short' })}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>₹{p.price}</div>
+                </div>
+              ))}
             </div>
           </div>
-
-          {/* PE Ratio Chart */}
-          <div style={{ background: 'white', padding: '25px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ margin: '0 0 20px 0', color: '#444' }}>PE Ratio Trend</h3>
-            <div style={{ width: '100%', height: '300px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={history}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis dataKey="date" hide />
-                  <YAxis domain={['auto', 'auto']} orientation="right" tick={{fontSize: 12}} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
-                    formatter={(value) => [value, 'PE Ratio']}
-                  />
-                  <Line type="monotone" dataKey="pe" stroke="#ff7300" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
-        <div style={{ background: 'white', padding: '25px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
-          <h3 style={{ margin: '0 0 20px 0', color: '#444' }}>Trading Volume</h3>
-          <div style={{ width: '100%', height: '150px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={history}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="date" hide />
-                <YAxis orientation="right" tick={{fontSize: 10}} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
-                  formatter={(value) => [value.toLocaleString(), 'Volume']}
-                />
-                <Bar dataKey="volume" fill="#cbd5e0" radius={[2, 2, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        )}
 
         <div style={{ background: 'white', padding: '30px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
           <h3 style={{ margin: '0 0 20px 0', color: '#444' }}>Key Metrics</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
             <div style={{ padding: '15px', background: '#f8f9fa', borderRadius: '12px' }}>
               <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '5px' }}>PE Ratio</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{stock.pe_ratio}</div>
-            </div>
-            <div style={{ padding: '15px', background: '#f8f9fa', borderRadius: '12px' }}>
-              <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '5px' }}>Market Cap</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>₹{(stock.market_cap / 10000000).toFixed(2)} Cr</div>
             </div>
             <div style={{ padding: '15px', background: '#f8f9fa', borderRadius: '12px' }}>
               <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '5px' }}>52W High</div>

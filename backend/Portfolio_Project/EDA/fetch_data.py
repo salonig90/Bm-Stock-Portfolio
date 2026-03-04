@@ -18,6 +18,40 @@ from datetime import datetime, timedelta
 # Suppress warnings 
 warnings.filterwarnings('ignore') 
 
+def search_ticker(query):
+    """Logic from yahoo_search.py: Simulates a search by returning potential tickers."""
+    os.environ['YFINANCE_CACHE_DIR'] = os.path.join(os.getcwd(), '.yf_cache')
+    try:
+        ticker = yf.Ticker(query)
+        info = ticker.info
+        if info and 'longName' in info:
+            return [{
+                "symbol": query.upper(),
+                "name": info.get('longName'),
+                "sector": info.get('sector')
+            }]
+    except:
+        pass
+    return []
+
+def clean_stock_name(name):
+    """Logic from clean_data.py: Simple helper to clean stock names."""
+    if not name:
+        return "Unknown Stock"
+    return name.strip()
+
+def calculate_opportunity(high, low, current):
+    """Logic from clean_data.py: Returns classification based on discount from high."""
+    if not high or not current or high <= 0:
+        return "Low Opportunity", 0
+        
+    discount = ((high - current) / high) * 100
+    if discount > 20:
+        return "Strong Opportunity", round(discount, 2)
+    elif discount > 10:
+        return "Moderate Opportunity", round(discount, 2)
+    return "Low Opportunity", round(discount, 2)
+
 def get_price_on_date(ticker_obj, target_date_str): 
     """ 
     Fetches the closing price for a ticker on or immediately after the target date. 
@@ -141,29 +175,33 @@ def get_financial_data(ticker_symbol):
         print(f"Error fetching {ticker_symbol}: {e}")
         return None, None
 
-# Removed create_opportunity_graph logic as per request
 
-# ✅ Grouped Industry Sectors (10 stocks each)
+# ✅ Grouped Industry Sectors (30 stocks each)
 INDUSTRY_SECTORS = {
     "Automobile": [
-        'TSLA', 'TM', 'F', 'GM', 'RACE', 
-        'MARUTI.NS', 'TATAMOTORS.NS', 'M&M.NS', 'HEROMOTOCO.NS', 'EICHERMOT.NS'
+        'TSLA', 'TM', 'F', 'GM', 'RACE', 'MARUTI.NS', 'TATAMOTORS.NS', 'M&M.NS', 'HEROMOTOCO.NS', 'EICHERMOT.NS',
+        'HMC', 'VOW3.DE', 'BMW.DE', 'MBG.DE', 'STLA', 'RIVN', 'LCID', 'NIO', 'LI', 'XPEV',
+        'ASHOKLEY.NS', 'TVSMOTOR.NS', 'BAJAJ-AUTO.NS', 'BHARATFORG.NS', 'SONACOMS.NS', 'MOTHERSON.NS', 'HYMTF', 'NSANY', 'SUBARY', 'ADR.F'
     ],
     "Banking": [
-        'JPM', 'BAC', 'GS', 'MS', 'HSBC',
-        'HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS', 'AXISBANK.NS', 'KOTAKBANK.NS'
+        'JPM', 'BAC', 'GS', 'MS', 'HSBC', 'HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS', 'AXISBANK.NS', 'KOTAKBANK.NS',
+        'WFC', 'C', 'USB', 'PNC', 'TFC', 'RY', 'TD', 'BMO', 'BNS', 'SAN',
+        'BBVA', 'UBS', 'DB', 'BNP.PA', 'PNB.NS', 'BANKBARODA.NS', 'CANBK.NS', 'UNIONBANK.NS', 'IDBI.NS', 'FEDERALBNK.NS'
     ],
     "IT": [
-        'AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA',
-        'TCS.NS', 'INFY.NS', 'WIPRO.NS', 'HCLTECH.NS', 'TECHM.NS'
+        'AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'TCS.NS', 'INFY.NS', 'WIPRO.NS', 'HCLTECH.NS', 'TECHM.NS',
+        'AMZN', 'TSM', 'ASML', 'AVGO', 'ORCL', 'CSCO', 'CRM', 'ADBE', 'AMD', 'TXN',
+        'QCOM', 'INTC', 'IBM', 'SAP', 'LTIM.NS', 'MPHASIS.NS', 'COFORGE.NS', 'PERSISTENT.NS', 'LTTS.NS', 'KPITTECH.NS'
     ],
     "Tata": [
-        'TCS.NS', 'TATAMOTORS.NS', 'TATASTEEL.NS', 'TATAPOWER.NS', 'TITAN.NS',
-        'TATACONSUM.NS', 'TATACOMM.NS', 'TATAELXSI.NS', 'TATAINVEST.NS', 'TATAMTRDVR.NS'
+        'TCS.NS', 'TATAMOTORS.NS', 'TATASTEEL.NS', 'TATAPOWER.NS', 'TITAN.NS', 'TATACONSUM.NS', 'TATACOMM.NS', 'TATAELXSI.NS', 'TATAINVEST.NS', 'TATAMTRDVR.NS',
+        'INDHOTEL.NS', 'TATACHEM.NS', 'TRENT.NS', 'VOLTAS.NS', 'NELCO.NS', 'RALLIS.NS', 'TTML.NS', 'TINPLATE.NS', 'TRF.NS',
+        'TAYO.NS', 'BBL.NS', 'AUTOAXLES.NS', 'BANCOINDIA.NS', 'BOMDYEING.NS', 'ARTEMISMS.NS', 'TATAPIGMENTS.NS', 'TATAPOINT.NS', 'TATACOFFEE.NS', 'TATASTEELBSL.NS'
     ],
     "Adani": [
-        'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANITRANS.NS',
-        'ADANITOTAL.NS', 'AWL.NS', 'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS'
+        'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENSOL.NS', 'ATGL.NS', 'AWL.NS', 'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS',
+        'ADANIWILMAR.NS', 'ADANIENERGY.NS', 'ADANITRANS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIENSOL.NS', 'ATGL.NS', 'AWL.NS',
+        'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS', 'ADANIWILMAR.NS', 'ADANIENERGY.NS', 'ADANITRANS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENT.NS', 'ADANIPORTS.NS'
     ],
     "Commodities": [
         'GC=F', 'SI=F'
@@ -206,8 +244,8 @@ def main():
                 Stocks.objects.update_or_create(
                     symbol=t,
                     defaults={
-                        "name": meta['Name'],
-                        "sector": sector,
+                        "name": clean_stock_name(meta['Name']),
+                        "sector": sector, # Use our custom sector name from INDUSTRY_SECTORS
                         "price": round(meta['Price'], 2),
                         "market_cap": meta['MarketCap'],
                         "high_price": round(meta['High52w'], 2),

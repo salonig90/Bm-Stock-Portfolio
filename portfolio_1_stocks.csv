@@ -1,0 +1,6 @@
+id,name,symbol,price,sector,market_cap,high_price,low_price,pe_ratio,discount_pct,opportunity_level
+339,"Tesla, Inc.",TSLA,403.32,Consumer Cyclical,1513430843392,498.83,214.25,370.02,19.15,Moderate Opportunity
+340,Toyota Motor Corporation,TM,243.66,Automobile,317571497984,248.9,155.0,13.3,2.11,Low Opportunity
+341,Ford Motor Company,F,13.39,Automobile,53419077632,14.8,8.44,7.35,9.53,Low Opportunity
+342,General Motors Company,GM,77.76,Automobile,72539299840,87.62,41.6,23.78,11.25,Moderate Opportunity
+343,Ferrari N.V.,RACE,362.75,Automobile,64196321280,519.1,328.0,34.48,30.12,Strong Opportunity
