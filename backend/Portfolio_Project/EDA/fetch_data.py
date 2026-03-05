@@ -43,14 +43,14 @@ def clean_stock_name(name):
 def calculate_opportunity(high, low, current):
     """Logic from clean_data.py: Returns classification based on discount from high."""
     if not high or not current or high <= 0:
-        return "Low Opportunity", 0
+        return "Low ", 0
         
     discount = ((high - current) / high) * 100
     if discount > 20:
-        return "Strong Opportunity", round(discount, 2)
+        return "Strong ", round(discount, 2)
     elif discount > 10:
-        return "Moderate Opportunity", round(discount, 2)
-    return "Low Opportunity", round(discount, 2)
+        return "Moderate ", round(discount, 2)
+    return "Low ", round(discount, 2)
 
 def get_price_on_date(ticker_obj, target_date_str): 
     """ 

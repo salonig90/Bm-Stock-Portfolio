@@ -1,19 +1,18 @@
-import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useNavigate, Navigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import Home from "./pages/Home";
 import Sectors from "./pages/Sectors";
 import Sector from "./pages/Sector";
 import StockDetail from "./pages/StockDetail";
 import StockCompare from "./pages/StockCompare";
-import MarketAnalysis from "./pages/MarketAnalysis";
+import GoldSilverAnalysis from "./pages/MarketAnalysis";
 import PortfolioDetail from "./pages/PortfolioDetail";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import API from "./services/api";
 
-function Navbar() {
+function Navbar({ username, onLogout }) {
   const navigate = useNavigate();
-  const username = localStorage.getItem("username") || "User";
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSector, setSelectedSector] = useState("All");
   const [sectors, setSectors] = useState([]);
@@ -55,12 +54,6 @@ function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("username");
-    navigate("/login");
-  };
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -231,14 +224,14 @@ function Navbar() {
         <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Home</Link>
         <Link to="/sectors" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Sectors</Link>
         <Link to="/compare" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Compare Stocks</Link>
-        <Link to="/analysis" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Market Analysis</Link>
+        <Link to="/gold-silver" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Gold Silver Analysis</Link>
         <Link to="/portfolio" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>My Portfolio</Link>
         
         {username ? (
           <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
             <span style={{ color: '#00d2ff', fontWeight: 'bold' }}>Hi, {username}</span>
             <button 
-              onClick={handleLogout}
+              onClick={onLogout}
               style={{ 
                 background: 'transparent', 
                 color: 'white', 
@@ -270,19 +263,46 @@ function Navbar() {
 }
 
 function App() {
+  const [username, setUsername] = useState(localStorage.getItem("username"));
+
+  const handleLogin = (name) => {
+    setUsername(name);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    setUsername(null);
+  };
+
   return (
     <BrowserRouter>
-      <Navbar />
+      <Navbar username={username} onLogout={handleLogout} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/sectors" element={<Sectors />} />
         <Route path="/sector/:name" element={<Sector />} />
-        <Route path="/analysis" element={<MarketAnalysis />} />
-        <Route path="/portfolio" element={<PortfolioDetail />} />
+        <Route path="/gold-silver" element={<GoldSilverAnalysis />} />
+        
+        {/* Protected Routes */}
+        <Route 
+          path="/portfolio" 
+          element={username ? <PortfolioDetail /> : <Navigate to="/login" />} 
+        />
+        
         <Route path="/compare" element={<StockCompare />} />
         <Route path="/stock/:id" element={<StockDetail />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        
+        {/* Auth Routes */}
+        <Route 
+          path="/login" 
+          element={!username ? <Login onLogin={handleLogin} /> : <Navigate to="/portfolio" />} 
+        />
+        <Route 
+          path="/signup" 
+          element={!username ? <Signup /> : <Navigate to="/portfolio" />} 
+        />
+        
         <Route path="*" element={<div style={{ padding: '100px', textAlign: 'center' }}>404 - Page Not Found</div>} />
       </Routes>
     </BrowserRouter>

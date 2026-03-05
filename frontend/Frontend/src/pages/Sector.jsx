@@ -96,8 +96,31 @@ function Sector() {
                 </div>
                 
                 <div style={{ marginBottom: '20px' }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#333' }}>₹{stock.price}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#888' }}>PE Ratio: {stock.pe_ratio}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#333' }}>
+                      {stock.currency === 'USD' ? '$' : '₹'}{stock.price}
+                    </div>
+                    {stock.prediction?.stock_ud && (
+                      <span style={{ 
+                        padding: '3px 8px', 
+                        borderRadius: '5px', 
+                        fontSize: '0.7rem', 
+                        fontWeight: '900',
+                        background: stock.prediction.stock_ud === 'UP' ? '#c6f6d5' : '#fed7d7',
+                        color: stock.prediction.stock_ud === 'UP' ? '#22543d' : '#822727'
+                      }}>
+                        {stock.prediction.stock_ud}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
+                    <div style={{ fontSize: '0.8rem', color: '#888' }}>PE: {stock.pe_ratio}</div>
+                    {stock.prediction?.lr1 && (
+                      <div style={{ fontSize: '0.8rem', color: '#00d2ff', fontWeight: 'bold' }}>
+                        Pred: {stock.currency === 'USD' ? '$' : '₹'}{stock.prediction.lr1}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div style={{ 

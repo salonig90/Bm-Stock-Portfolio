@@ -22,6 +22,12 @@ class Stocks(models.Model):
     pe_ratio = models.FloatField(default=0)
     discount_pct = models.FloatField(default=0)
     opportunity_level = models.CharField(max_length=50, default="Low Opportunity")
+    currency = models.CharField(max_length=10, default="INR")
+    
+    # New fields for caching data
+    last_updated = models.DateTimeField(auto_now=True)
+    historical_data = models.JSONField(null=True, blank=True)
+    prediction_data = models.JSONField(null=True, blank=True)
     
     portfolio = models.ForeignKey(
         Portfolio,
@@ -38,11 +44,11 @@ class Stocks(models.Model):
         
         # 2. Automatically determine Opportunity Level
         if self.discount_pct > 20:
-            self.opportunity_level = "Strong Opportunity"
+            self.opportunity_level = "Strong"
         elif 10 <= self.discount_pct <= 20:
-            self.opportunity_level = "Moderate Opportunity"
+            self.opportunity_level = "Moderate"
         else:
-            self.opportunity_level = "Low Opportunity"
+            self.opportunity_level = "Low"
             
         super().save(*args, **kwargs)
 

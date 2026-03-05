@@ -7,20 +7,75 @@ from .serializers import StockSerializer, PortfolioSerializer
 from django.db.models import Q
 import yfinance as yf
 import os
-from ML.analysis import predict_stock_price, compare_stocks, cluster_portfolio_stocks
+import datetime
+import pandas as pd
+from django.utils import timezone
+from ML.analysis import compare_stocks, cluster_portfolio_stocks, get_portfolio_pe_analysis
+from ML.prediction_models import get_all_predictions
 
-def fetch_realtime_stock(symbol):
+# Custom Sector Mapping from fetch_data.py
+INDUSTRY_SECTORS = {
+    "Automobile": [
+        'TSLA', 'TM', 'F', 'GM', 'RACE', 'MARUTI.NS', 'TATAMOTORS.NS', 'M&M.NS', 'HEROMOTOCO.NS', 'EICHERMOT.NS',
+        'HMC', 'VOW3.DE', 'BMW.DE', 'MBG.DE', 'STLA', 'RIVN', 'LCID', 'NIO', 'LI', 'XPEV',
+        'ASHOKLEY.NS', 'TVSMOTOR.NS', 'BAJAJ-AUTO.NS', 'BHARATFORG.NS', 'SONACOMS.NS', 'MOTHERSON.NS', 'HYMTF', 'NSANY', 'SUBARY', 'ADR.F'
+    ],
+    "Banking": [
+        'JPM', 'BAC', 'GS', 'MS', 'HSBC', 'HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS', 'AXISBANK.NS', 'KOTAKBANK.NS',
+        'WFC', 'C', 'USB', 'PNC', 'TFC', 'RY', 'TD', 'BMO', 'BNS', 'SAN',
+        'BBVA', 'UBS', 'DB', 'BNP.PA', 'PNB.NS', 'BANKBARODA.NS', 'CANBK.NS', 'UNIONBANK.NS', 'IDBI.NS', 'FEDERALBNK.NS'
+    ],
+    "IT": [
+        'AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'TCS.NS', 'INFY.NS', 'WIPRO.NS', 'HCLTECH.NS', 'TECHM.NS',
+        'AMZN', 'TSM', 'ASML', 'AVGO', 'ORCL', 'CSCO', 'CRM', 'ADBE', 'AMD', 'TXN',
+        'QCOM', 'INTC', 'IBM', 'SAP', 'LTIM.NS', 'MPHASIS.NS', 'COFORGE.NS', 'PERSISTENT.NS', 'LTTS.NS', 'KPITTECH.NS'
+    ],
+    "Tata": [
+        'TCS.NS', 'TATAMOTORS.NS', 'TATASTEEL.NS', 'TATAPOWER.NS', 'TITAN.NS', 'TATACONSUM.NS', 'TATACOMM.NS', 'TATAELXSI.NS', 'TATAINVEST.NS', 'TATAMTRDVR.NS',
+        'INDHOTEL.NS', 'TATACHEM.NS', 'TRENT.NS', 'VOLTAS.NS', 'NELCO.NS', 'RALLIS.NS', 'TTML.NS', 'TINPLATE.NS', 'TRF.NS',
+        'TAYO.NS', 'BBL.NS', 'AUTOAXLES.NS', 'BANCOINDIA.NS', 'BOMDYEING.NS', 'ARTEMISMS.NS', 'TATAPIGMENTS.NS', 'TATAPOINT.NS', 'TATACOFFEE.NS', 'TATASTEELBSL.NS'
+    ],
+    "Adani": [
+        'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENSOL.NS', 'ATGL.NS', 'AWL.NS', 'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS',
+        'ADANIWILMAR.NS', 'ADANIENERGY.NS', 'ADANITRANS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIENSOL.NS', 'ATGL.NS', 'AWL.NS',
+        'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS', 'ADANIWILMAR.NS', 'ADANIENERGY.NS', 'ADANITRANS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENT.NS', 'ADANIPORTS.NS'
+    ],
+    "Commodities": [
+        'GC=F', 'SI=F'
+    ]
+}
+
+def get_custom_sector(symbol):
+    """Returns custom sector based on symbol mapping. If not found, returns None."""
+    symbol = symbol.upper()
+    for sector, tickers in INDUSTRY_SECTORS.items():
+        if symbol in [t.upper() for t in tickers]:
+            return sector
+    return None
+
+def fetch_realtime_stock(symbol, force_refresh=False):
     """Helper to fetch and save/update stock data from yfinance/yahooquery on the fly."""
-    import yfinance as yf
     from yahooquery import Ticker
     import pandas as pd
-    import os
 
     try:
+        # 1. Determine the correct sector first. 
+        sector = get_custom_sector(symbol)
+        if not sector:
+            print(f"Skipping {symbol}: Not in defined sectors.")
+            return None
+
+        # 2. Check if stock already exists
+        existing_stock = Stocks.objects.filter(symbol=symbol).first()
+        if existing_stock and not force_refresh:
+            # If data is less than 1 day old, it's "fresh enough" for fast loading
+            if existing_stock.last_updated and (timezone.now() - existing_stock.last_updated).total_seconds() < 86400:
+                return existing_stock
+
         os.environ['YFINANCE_CACHE_DIR'] = os.path.join(os.getcwd(), '.yf_cache')
         yf.set_tz_cache_location(os.path.join(os.getcwd(), '.yf_cache'))
         
-        # 1. Try yfinance first
+        # 3. Fetch from yfinance
         t_yf = yf.Ticker(symbol)
         info = t_yf.info
         
@@ -30,7 +85,7 @@ def fetch_realtime_stock(symbol):
         low = 0
         pe = 0
         market_cap = 0
-        sector = "Unknown"
+        currency = "INR" if symbol.endswith(".NS") or symbol.endswith(".BO") else "USD"
 
         if info and (info.get('currentPrice') or info.get('regularMarketPrice')):
             name = info.get('longName') or info.get('shortName') or symbol
@@ -39,9 +94,9 @@ def fetch_realtime_stock(symbol):
             low = info.get('fiftyTwoWeekLow') or price
             pe = info.get('trailingPE') or info.get('forwardPE') or 0
             market_cap = info.get('marketCap') or 0
-            sector = info.get('sector') or "Unknown"
+            currency = info.get('currency', currency)
         else:
-            # 2. Fallback to yahooquery
+            # 4. Fallback to yahooquery
             t_yq = Ticker(symbol)
             details = t_yq.summary_detail.get(symbol, {})
             price_data = t_yq.price.get(symbol, {})
@@ -55,11 +110,49 @@ def fetch_realtime_stock(symbol):
             low = details.get('fiftyTwoWeekLow') or (price * 0.9)
             pe = details.get('trailingPE') or details.get('forwardPE') or 0
             market_cap = details.get('marketCap') or 0
-            sector = getattr(t_yq.summary_profile.get(symbol, {}), 'sector', "Unknown")
+            currency = price_data.get('currency', currency)
 
         if not name:
             return None
 
+        # 5. Fetch Historical Data & Predictions
+        history_data = existing_stock.historical_data if existing_stock else None
+        old_prediction = existing_stock.prediction_data if existing_stock else None
+        new_prediction_res = old_prediction
+
+        # Always fetch history if we need new predictions
+        try:
+            hist = t_yf.history(period="1y")
+            if not hist.empty:
+                history_data = []
+                for date, row in hist.iterrows():
+                    history_data.append({
+                        "date": date.strftime('%Y-%m-%d'),
+                        "price": round(row['Close'], 2),
+                        "volume": int(row['Volume'])
+                    })
+                
+                # NEW: Calculate Real-Time Accuracy by comparing yesterday's stored prediction with today's live price
+                new_prediction_res = get_all_predictions(symbol, hist)
+                
+                if old_prediction and 'prediction_date' in old_prediction:
+                    # Check if the stored prediction was made on a different (earlier) day than today
+                    today_str = datetime.date.today().strftime('%Y-%m-%d')
+                    if old_prediction['prediction_date'] < today_str:
+                        # Calculation: ((Yesterday's Prediction - Today's Actual) / Yesterday's Prediction) * 100
+                        def calc_acc(pred, actual):
+                            if not pred or pred == 0: return None
+                            return round(((pred - actual) / pred) * 100, 2)
+                        
+                        current_actual = round(float(price), 2)
+                        new_prediction_res['lr1_diff'] = calc_acc(old_prediction.get('lr1'), current_actual)
+                        new_prediction_res['ts1_diff'] = calc_acc(old_prediction.get('ts1'), current_actual)
+                        new_prediction_res['rnn1_diff'] = calc_acc(old_prediction.get('rnn1'), current_actual)
+                
+        except Exception as e:
+            print(f"Historical/Prediction error for {symbol}: {e}")
+
+        # 6. Save to DB
         stock, created = Stocks.objects.update_or_create(
             symbol=symbol,
             defaults={
@@ -69,7 +162,10 @@ def fetch_realtime_stock(symbol):
                 "market_cap": market_cap,
                 "high_price": round(float(high), 2),
                 "low_price": round(float(low), 2),
-                "pe_ratio": round(float(pe), 2)
+                "pe_ratio": round(float(pe), 2),
+                "historical_data": history_data,
+                "prediction_data": new_prediction_res,
+                "currency": currency
             }
         )
         return stock
@@ -80,20 +176,38 @@ def fetch_realtime_stock(symbol):
 class SectorListAPIView(APIView):
     permission_classes = [permissions.AllowAny]
     def get(self, request):
-        sectors = list(Stocks.objects.exclude(sector="Unknown").values_list("sector", flat=True).distinct())
-        # If no sectors found, return all distinct sectors including Unknown
-        if not sectors:
-            sectors = list(Stocks.objects.values_list("sector", flat=True).distinct())
-        return Response(sectors)
+        # Strictly return ONLY the 6 sectors defined in fetch_data.py logic
+        return Response(list(INDUSTRY_SECTORS.keys()))
 
 
-class SectorStocksAPIView(ListAPIView):
+class SectorStocksAPIView(APIView):
     permission_classes = [permissions.AllowAny]
-    serializer_class = StockSerializer
 
-    def get_queryset(self):
-        sector = self.kwargs.get("name")
-        return Stocks.objects.filter(sector=sector)
+    def get(self, request, name):
+        try:
+            # 1. Get tickers for this sector from our predefined mapping
+            tickers = INDUSTRY_SECTORS.get(name, [])
+            if not tickers:
+                return Response([])
+            
+            # 2. Fetch what we have in DB for these tickers
+            stocks = Stocks.objects.filter(symbol__in=tickers, sector=name)
+            
+            # 3. If DB has fewer stocks than expected, trigger background-style fetch for missing ones
+            if stocks.count() < len(tickers):
+                # We'll just fetch a few missing ones for now to avoid long timeouts
+                db_symbols = set(stocks.values_list('symbol', flat=True))
+                missing = [s for s in tickers if s not in db_symbols][:10] # Fetch first 10 missing
+                for s in missing:
+                    fetch_realtime_stock(s)
+                # Refresh queryset after fetching
+                stocks = Stocks.objects.filter(symbol__in=tickers, sector=name)
+
+            serializer = StockSerializer(stocks, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            print(f"Sector Error: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class StockSearchAPIView(ListAPIView):
@@ -136,10 +250,10 @@ class StockDetailAPIView(RetrieveAPIView):
     serializer_class = StockSerializer
 
     def get_object(self):
-        # Always refresh data from yfinance on detail view
+        # Always prioritize cached DB data for speed. 
+        # Data is only refreshed from yfinance when user clicks Refresh in My Portfolio.
         obj = super().get_object()
-        refreshed_obj = fetch_realtime_stock(obj.symbol)
-        return refreshed_obj if refreshed_obj else obj
+        return obj
 
 
 class StockHistoryAPIView(APIView):
@@ -148,50 +262,48 @@ class StockHistoryAPIView(APIView):
     def get(self, request, pk):
         try:
             stock = Stocks.objects.get(pk=pk)
-            import yfinance as yf
-            import pandas as pd
-            import os
-            from datetime import datetime, timedelta
-
-            # Set yfinance cache dir to avoid "unable to open database file"
-            os.environ['YFINANCE_CACHE_DIR'] = os.path.join(os.getcwd(), '.yf_cache')
-            yf.set_tz_cache_location(os.path.join(os.getcwd(), '.yf_cache'))
-
-            ticker = yf.Ticker(stock.symbol)
-            # Fetch last 1 year of daily data
-            hist = ticker.history(period="1y")
             
-            if hist.empty:
-                return Response({"error": "No historical data found"}, status=status.HTTP_404_NOT_FOUND)
-
-            # Prepare data for charts
-            history_data = []
-            import random # For simulating PE movement if not available
-            
-            # Base PE for simulation
-            base_pe = stock.pe_ratio if stock.pe_ratio > 0 else 15
-            
-            for date, row in hist.iterrows():
-                # Simulate a slight PE variation based on price movement
-                # In a real app, you'd calculate this from historical EPS if available
-                simulated_pe = round(base_pe * (row['Close'] / hist.iloc[0]['Close']), 2)
+            # Check if we have cached historical data
+            if stock.historical_data:
+                history_data = stock.historical_data
+                prediction_data = stock.prediction_data
                 
-                history_data.append({
-                    "date": date.strftime('%Y-%m-%d'),
-                    "price": round(row['Close'], 2),
-                    "pe": simulated_pe,
-                    "volume": int(row['Volume'])
+                # If historical data exists but prediction doesn't, regenerate it
+                if not prediction_data:
+                    # We need a DataFrame for get_all_predictions
+                    # Since we have historical_data as JSON list, convert it
+                    df = pd.DataFrame(history_data)
+                    df['Close'] = df['price'] # Ensure 'Close' column exists
+                    prediction_data = get_all_predictions(stock.symbol, df)
+                    stock.prediction_data = prediction_data
+                    stock.save()
+
+                # Add simulated PE to history if not present
+                base_pe = stock.pe_ratio if stock.pe_ratio > 0 else 15
+                first_price = history_data[0]['price'] if history_data else 1
+                for item in history_data:
+                    if 'pe' not in item:
+                        item['pe'] = round(base_pe * (item['price'] / first_price), 2)
+
+                return Response({
+                    "symbol": stock.symbol,
+                    "name": stock.name,
+                    "history": history_data,
+                    "prediction": prediction_data
                 })
 
-            # Get Prediction
-            prediction_data = predict_stock_price(stock.symbol)
+            # If no cached data, fetch it
+            refreshed_stock = fetch_realtime_stock(stock.symbol, force_refresh=True)
+            if refreshed_stock:
+                return Response({
+                    "symbol": refreshed_stock.symbol,
+                    "name": refreshed_stock.name,
+                    "history": refreshed_stock.historical_data,
+                    "prediction": refreshed_stock.prediction_data
+                })
+            
+            return Response({"error": "Could not fetch data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            return Response({
-                "symbol": stock.symbol,
-                "name": stock.name,
-                "history": history_data,
-                "prediction": prediction_data
-            })
         except Stocks.DoesNotExist:
             return Response({"error": "Stock not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
@@ -203,32 +315,34 @@ class UserPortfolioAPIView(APIView):
 
     def get(self, request):
         try:
-            # request.user is our Staff object from StaffTokenAuthentication
+            # 1. Get portfolio
             portfolio, created = Portfolio.objects.get_or_create(
                 staff=request.user,
                 defaults={"portfolio_name": f"{request.user.name}'s Portfolio"}
             )
             
-            # 1. Fetch stocks and clustering data
+            # 2. Fetch stocks directly from DB (no real-time yfinance fetch here for speed)
             all_stocks = list(portfolio.stocks.all())
-            clustering_result = cluster_portfolio_stocks(all_stocks)
             
-            # 2. Build stock dictionaries with prediction
+            # 3. Build stock data list
             stocks_data = []
             for stock in all_stocks:
                 stock_dict = StockSerializer(stock).data
-                # Add prediction
-                try:
-                    prediction = predict_stock_price(stock.symbol)
-                    stock_dict['prediction'] = prediction
-                except:
-                    stock_dict['prediction'] = None
+                # Use cached prediction if available
+                stock_dict['prediction'] = stock.prediction_data
                 stocks_data.append(stock_dict)
             
+            # 4. Perform clustering and PE analysis (Only if we have stocks)
+            clustering_result = None
+            pe_plot = None
+            if all_stocks:
+                clustering_result = cluster_portfolio_stocks(all_stocks)
+                pe_plot = get_portfolio_pe_analysis(all_stocks)
+            
+            # 5. Build final response
             portfolio_data = PortfolioSerializer(portfolio).data
             portfolio_data['stocks'] = stocks_data
             
-            # Add clustering results
             if isinstance(clustering_result, dict):
                 portfolio_data['clusters'] = clustering_result.get('groups', [])
                 portfolio_data['cluster_plot'] = clustering_result.get('plot', None)
@@ -236,9 +350,40 @@ class UserPortfolioAPIView(APIView):
                 portfolio_data['clusters'] = []
                 portfolio_data['cluster_plot'] = None
             
+            portfolio_data['pe_plot'] = pe_plot
+            
             return Response(portfolio_data)
         except Exception as e:
             print(f"Portfolio Error: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class RefreshStocksAPIView(APIView):
+    """View to trigger a manual refresh of all stocks in the database/portfolio."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            # 1. Get the portfolio for the logged-in user
+            portfolio, _ = Portfolio.objects.get_or_create(staff=request.user)
+            stocks_to_refresh = portfolio.stocks.all()
+
+            if not stocks_to_refresh.exists():
+                return Response({"message": "No stocks in your portfolio to refresh."}, status=status.HTTP_200_OK)
+
+            results = []
+            for stock in stocks_to_refresh:
+                # Force refresh from yfinance and store in DB
+                updated_stock = fetch_realtime_stock(stock.symbol, force_refresh=True)
+                if updated_stock:
+                    results.append(stock.symbol)
+            
+            return Response({
+                "message": f"Successfully refreshed {len(results)} stocks from yfinance.",
+                "refreshed_stocks": results
+            })
+        except Exception as e:
+            print(f"Refresh Error: {e}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

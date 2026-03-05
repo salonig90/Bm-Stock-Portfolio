@@ -19,73 +19,91 @@ def run_analysis():
     today = datetime.date.today() 
     
     print(f"Fetching data from {start_date} to {today}...")
-    gold = yf.download("GC=F", start=start_date, end=today) 
-    silver = yf.download("SI=F", start=start_date, end=today) 
+    gold_ticker = yf.Ticker("GC=F")
+    silver_ticker = yf.Ticker("SI=F")
     
+    gold_hist = gold_ticker.history(start=start_date, end=today) 
+    silver_hist = silver_ticker.history(start=start_date, end=today) 
+    
+    # Live prices
+    gold_live = gold_ticker.info.get('currentPrice') or gold_ticker.info.get('regularMarketPrice') or (gold_hist['Close'].iloc[-1] if not gold_hist.empty else 0)
+    silver_live = silver_ticker.info.get('currentPrice') or silver_ticker.info.get('regularMarketPrice') or (silver_hist['Close'].iloc[-1] if not silver_hist.empty else 0)
+
     # Check if data is empty
-    if gold.empty or silver.empty:
+    if gold_hist.empty or silver_hist.empty:
         print("Error: Could not fetch data for Gold or Silver.")
         return
         
-    data = pd.concat([gold['Close'], silver['Close']], axis=1) 
-    data.columns = ["Gold_Close", "Silver_Close"] 
-    data = data.dropna() 
+    data = pd.DataFrame({
+        "Gold": gold_hist['Close'],
+        "Silver": silver_hist['Close']
+    }).dropna()
 
     # 1. Gold Price Plot
-    plt.figure(figsize=(12, 6)) 
-    plt.plot(data["Gold_Close"], color='gold', linewidth=2) 
-    plt.grid(True, alpha=0.3) 
-    plt.title("Gold Price Trend (2025)", fontsize=14) 
-    plt.xlabel("Date") 
-    plt.ylabel("USD") 
-    plt.savefig('gold_price.png')
-    print("Saved gold_price.png")
-    plt.close()
+    fig1, ax1 = plt.subplots(figsize=(12, 6))
+    ax1.plot(data.index, data["Gold"], color='gold', linewidth=2) 
+    ax1.grid(True, alpha=0.3) 
+    ax1.set_title("Gold Price Trend (2025)", fontsize=14) 
+    ax1.set_xlabel("Date") 
+    ax1.set_ylabel("USD") 
+    gold_price_plot = get_base64_plot(fig1)
 
     # 2. Silver Price Plot
-    plt.figure(figsize=(12, 6)) 
-    plt.plot(data["Silver_Close"], color='silver', linewidth=2) 
-    plt.grid(True, alpha=0.3) 
-    plt.title("Silver Price Trend (2025)", fontsize=14) 
-    plt.xlabel("Date") 
-    plt.ylabel("USD") 
-    plt.savefig('silver_price.png')
-    print("Saved silver_price.png")
-    plt.close()
+    fig2, ax2 = plt.subplots(figsize=(12, 6))
+    ax2.plot(data.index, data["Silver"], color='silver', linewidth=2) 
+    ax2.grid(True, alpha=0.3) 
+    ax2.set_title("Silver Price Trend (2025)", fontsize=14) 
+    ax2.set_xlabel("Date") 
+    ax2.set_ylabel("USD") 
+    silver_price_plot = get_base64_plot(fig2)
 
     # 3. Statistics
-    corr = data["Gold_Close"].corr(data["Silver_Close"]) 
-    print(f"\nThe correlation is: {corr:.4f}") 
-    
-    slope, intercept, r_value, p_value, std_err = stats.linregress(data["Gold_Close"], data["Silver_Close"]) 
+    corr = data["Gold"].corr(data["Silver"]) 
+    slope, intercept, r_value, p_value, std_err = stats.linregress(data["Gold"], data["Silver"]) 
     
     equation = f"Silver = {slope:.4f} * Gold + {intercept:.4f}"
     r_squared = r_value**2
     
-    print(equation) 
-    print(f"R-squared: {r_squared:.4f}") 
-    
     # 4. Regression Plot
-    plt.figure(figsize=(10, 6)) 
-    sns.regplot(x="Gold_Close", y="Silver_Close", data=data, 
+    fig3, ax3 = plt.subplots(figsize=(10, 6))
+    sns.regplot(x="Gold", y="Silver", data=data, ax=ax3,
                 line_kws={"color": "pink", "label": f"R² = {r_squared:.4f}"},
                 scatter_kws={"alpha": 0.5}) 
-    plt.title("Gold vs Silver: Linear Regression", fontsize=14)
-    plt.xlabel("Gold Price (USD)") 
-    plt.ylabel("Silver Price (USD)") 
-    plt.legend()
-    plt.grid(True, alpha=0.3) 
-    plt.savefig('gold_silver_regression.png')
-    print("Saved gold_silver_regression.png")
-    plt.close()
+    ax3.set_title("Gold vs Silver: Linear Regression", fontsize=14)
+    ax3.set_xlabel("Gold Price (USD)") 
+    ax3.set_ylabel("Silver Price (USD)") 
+    ax3.legend()
+    ax3.grid(True, alpha=0.3) 
+    regression_plot = get_base64_plot(fig3)
     
     return {
-        "correlation": float(corr),
-        "slope": float(slope),
-        "intercept": float(intercept),
-        "r_squared": float(r_squared),
-        "equation": equation
+        "live_prices": {
+            "gold": round(float(gold_live), 2),
+            "silver": round(float(silver_live), 2)
+        },
+        "stats": {
+            "correlation": float(corr),
+            "slope": float(slope),
+            "intercept": float(intercept),
+            "r_squared": float(r_squared),
+            "equation": equation
+        },
+        "plots": {
+            "gold_price": gold_price_plot,
+            "silver_price": silver_price_plot,
+            "regression": regression_plot
+        }
     }
+
+def get_base64_plot(fig):
+    import base64
+    from io import BytesIO
+    buf = BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    img_str = base64.b64encode(buf.read()).decode('utf-8')
+    plt.close(fig)
+    return img_str
 
 if __name__ == "__main__": 
     run_analysis()

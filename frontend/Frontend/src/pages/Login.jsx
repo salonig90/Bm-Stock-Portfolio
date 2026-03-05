@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import API from "../services/api";
 
-function Login() {
+function Login({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -14,6 +14,7 @@ function Login() {
         // Save token with 'Token ' prefix for the custom backend auth
         localStorage.setItem("token", `Token ${res.data.token}`);
         localStorage.setItem("username", res.data.username);
+        onLogin(res.data.username);
         navigate("/portfolio");
       })
       .catch((error) => {

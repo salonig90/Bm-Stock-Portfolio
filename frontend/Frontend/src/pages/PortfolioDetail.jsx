@@ -10,8 +10,24 @@ function PortfolioDetail() {
   const [stocksInSector, setStocksInSector] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [viewMode, setViewMode] = useState("clustering"); // 'clustering' or 'pe'
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [error, setError] = useState(null);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const response = await API.post("stocks/refresh/");
+      alert(response.data.message || "Data refreshed successfully!");
+      fetchPortfolio(); // Refresh the list from DB
+    } catch (err) {
+      console.error("Refresh error:", err);
+      alert("Error refreshing data.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     fetchPortfolio();
@@ -174,80 +190,221 @@ function PortfolioDetail() {
           </div>
         </div>
 
+        {/* Portfolio Analysis Section */}
+        {portfolio.stocks.length > 0 && (
+          <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#333' }}>Portfolio AI Analysis</h3>
+              <div style={{ display: 'flex', background: '#f0f2f5', padding: '5px', borderRadius: '10px' }}>
+                <button 
+                  onClick={() => setViewMode("clustering")}
+                  style={{ 
+                    padding: '8px 20px', 
+                    borderRadius: '8px', 
+                    border: 'none', 
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    background: viewMode === "clustering" ? "#00d2ff" : "transparent",
+                    color: viewMode === "clustering" ? "white" : "#666",
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  K-Means Clustering
+                </button>
+                <button 
+                  onClick={() => setViewMode("pe")}
+                  style={{ 
+                    padding: '8px 20px', 
+                    borderRadius: '8px', 
+                    border: 'none', 
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    background: viewMode === "pe" ? "#00d2ff" : "transparent",
+                    color: viewMode === "pe" ? "white" : "#666",
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  PE Ratio Analysis
+                </button>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              {viewMode === "clustering" ? (
+                <div>
+                  {portfolio.cluster_plot ? (
+                    <>
+                      <img 
+                        src={`data:image/png;base64,${portfolio.cluster_plot}`} 
+                        alt="K-Means Clustering" 
+                        style={{ maxWidth: '100%', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      />
+                      <div style={{ marginTop: '25px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', textAlign: 'left' }}>
+                        {portfolio.clusters.map((cluster, idx) => (
+                          <div key={idx} style={{ padding: '20px', background: '#f8faff', borderRadius: '12px', border: '1px solid #e1e8f0' }}>
+                            <h4 style={{ margin: '0 0 10px 0', color: '#2c5282' }}>{cluster.label}</h4>
+                            <p style={{ fontSize: '0.85rem', color: '#4a5568', marginBottom: '15px' }}>{cluster.info}</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                              {cluster.stocks.map(s => (
+                                <span key={s.symbol} style={{ padding: '3px 8px', background: 'white', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', border: '1px solid #cbd5e0' }}>{s.symbol}</span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p>Not enough data for clustering. Add at least 2 stocks.</p>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  {portfolio.pe_plot ? (
+                    <img 
+                      src={`data:image/png;base64,${portfolio.pe_plot}`} 
+                      alt="PE Ratio Analysis" 
+                      style={{ maxWidth: '100%', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    />
+                  ) : (
+                    <p>PE data not available for your stocks.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Stock Data List */}
-        <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-          <h3 style={{ margin: '0 0 25px 0', fontSize: '1.5rem', color: '#333' }}>Portfolio Holdings</h3>
+        <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#333' }}>Portfolio Holdings</h3>
+            <button 
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              style={{ 
+                background: '#00d2ff', 
+                color: 'white', 
+                border: 'none', 
+                padding: '10px 20px', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s'
+              }}
+            >
+              {isRefreshing ? "Updating..." : "🔄 Refresh"}
+            </button>
+          </div>
           
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1000px' }}>
               <thead>
-                <tr style={{ textAlign: 'left', borderBottom: '2px solid #f0f0f0', color: '#888', fontSize: '0.9rem' }}>
-                  <th style={{ padding: '15px 10px' }}>STOCK</th>
-                  <th style={{ padding: '15px 10px' }}>PRICE</th>
-                  <th style={{ padding: '15px 10px' }}>NEXT DAY PRED.</th>
-                  <th style={{ padding: '15px 10px' }}>SECTOR</th>
-                  <th style={{ padding: '15px 10px' }}>PE RATIO</th>
-                  <th style={{ padding: '15px 10px' }}>52W HIGH/LOW</th>
-                  <th style={{ padding: '15px 10px' }}>OPPORTUNITY</th>
-                  <th style={{ padding: '15px 10px' }}>GRAPHS</th>
-                  <th style={{ padding: '15px 10px' }}>ACTION</th>
+                <tr style={{ textAlign: 'left', borderBottom: '2px solid #f0f0f0', color: '#888', fontSize: '0.8rem' }}>
+                  <th style={{ padding: '15px 5px' }}>STOCK</th>
+                  <th style={{ padding: '15px 5px' }}>PRICE</th>
+                  <th style={{ padding: '15px 5px' }}>DISCOUNT</th>
+                  <th style={{ padding: '15px 5px' }}>LR1</th>
+                  <th style={{ padding: '15px 5px' }}>LR1_pred%</th>
+                  <th style={{ padding: '15px 5px' }}>TS1</th>
+                  <th style={{ padding: '15px 5px' }}>TS1_pred%</th>
+                  <th style={{ padding: '15px 5px' }}>RNN1</th>
+                  <th style={{ padding: '15px 5px' }}>RNN1_pred%</th>
+                  <th style={{ padding: '15px 5px' }}>STOCK_UD</th>
+                  <th style={{ padding: '15px 5px' }}>PE RATIO</th>
+                  <th style={{ padding: '15px 5px' }}>OPPORTUNITY</th>
+                  <th style={{ padding: '15px 5px' }}>ACTION</th>
                 </tr>
               </thead>
               <tbody>
-                {portfolio.stocks.map((stock) => (
-                  <tr key={stock.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                    <td style={{ padding: '20px 10px' }}>
-                      <div style={{ fontWeight: 'bold', fontSize: '1.1rem' }}>{stock.symbol}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#888' }}>{stock.name}</div>
-                    </td>
-                    <td style={{ padding: '20px 10px', fontWeight: 'bold' }}>₹{stock.price}</td>
-                    <td style={{ padding: '20px 10px' }}>
-                      {stock.prediction ? (
-                        <div style={{ color: '#0050b3', fontWeight: 'bold' }}>₹{stock.prediction.next_day_prediction}</div>
-                      ) : (
-                        <span style={{ color: '#ccc' }}>N/A</span>
-                      )}
-                    </td>
-                    <td style={{ padding: '20px 10px' }}>
-                      <span style={{ padding: '4px 10px', background: '#f0f2f5', borderRadius: '6px', fontSize: '0.85rem' }}>{stock.sector}</span>
-                    </td>
-                    <td style={{ padding: '20px 10px' }}>{stock.pe_ratio}</td>
-                    <td style={{ padding: '20px 10px' }}>
-                      <div style={{ fontSize: '0.85rem' }}>
-                        <span style={{ color: '#2c7a7b' }}>H: ₹{stock.high_price}</span><br/>
-                        <span style={{ color: '#c53030' }}>L: ₹{stock.low_price}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '20px 10px' }}>
-                      <span style={{ 
-                        fontSize: '0.8rem', 
-                        padding: '6px 12px', 
-                        borderRadius: '20px',
-                        fontWeight: 'bold',
-                        background: stock.opportunity_level === "Strong Opportunity" ? "#e6fffa" : stock.opportunity_level === "Moderate Opportunity" ? "#fffaf0" : "#fff5f5",
-                        color: stock.opportunity_level === "Strong Opportunity" ? "#2c7a7b" : stock.opportunity_level === "Moderate Opportunity" ? "#b7791f" : "#c53030"
-                      }}>
-                        {stock.opportunity_level}
-                      </span>
-                    </td>
-                    <td style={{ padding: '20px 10px' }}>
-                      <button 
-                        onClick={() => navigate(`/stock/${stock.id}`)}
-                        style={{ background: '#00d2ff', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
-                      >
-                        View Graph
-                      </button>
-                    </td>
-                    <td style={{ padding: '20px 10px' }}>
-                      <button 
-                        onClick={() => removeStock(stock.id)}
-                        style={{ background: 'transparent', color: '#e53e3e', border: '1px solid #e53e3e', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {portfolio.stocks.map((stock) => {
+                  const currencySymbol = stock.currency === 'USD' ? '$' : '₹';
+                  const pred = stock.prediction || {};
+                  
+                  return (
+                    <tr key={stock.id} style={{ borderBottom: '1px solid #f0f0f0', fontSize: '0.9rem' }}>
+                      <td style={{ padding: '15px 5px' }}>
+                        <div style={{ fontWeight: 'bold' }}>{stock.symbol}</div>
+                        <div style={{ fontSize: '0.7rem', color: '#888' }}>{stock.name}</div>
+                      </td>
+                      <td style={{ padding: '15px 5px', fontWeight: 'bold' }}>{currencySymbol}{stock.price}</td>
+                      
+                      <td style={{ padding: '15px 5px', color: '#888' }}>
+                        {stock.discount_pct}%
+                      </td>
+
+                      {/* LR1 Columns */}
+                      <td style={{ padding: '15px 5px', fontWeight: '500' }}>
+                        {pred.lr1 ? `${currencySymbol}${pred.lr1}` : 'N/A'}
+                      </td>
+                      <td style={{ padding: '15px 5px', color: pred.lr1_diff >= 0 ? '#38a169' : '#e53e3e', fontWeight: 'bold' }}>
+                        {pred.lr1_diff !== undefined ? `${pred.lr1_diff > 0 ? '+' : ''}${pred.lr1_diff}%` : 'N/A'}
+                      </td>
+
+                      {/* TS1 Columns */}
+                      <td style={{ padding: '15px 5px', fontWeight: '500' }}>
+                        {pred.ts1 ? `${currencySymbol}${pred.ts1}` : 'N/A'}
+                      </td>
+                      <td style={{ padding: '15px 5px', color: pred.ts1_diff >= 0 ? '#38a169' : '#e53e3e', fontWeight: 'bold' }}>
+                        {pred.ts1_diff !== undefined ? `${pred.ts1_diff > 0 ? '+' : ''}${pred.ts1_diff}%` : 'N/A'}
+                      </td>
+
+                      {/* RNN1 Columns */}
+                      <td style={{ padding: '15px 5px', fontWeight: '500' }}>
+                        {pred.rnn1 ? `${currencySymbol}${pred.rnn1}` : 'N/A'}
+                      </td>
+                      <td style={{ padding: '15px 5px', color: pred.rnn1_diff >= 0 ? '#38a169' : '#e53e3e', fontWeight: 'bold' }}>
+                        {pred.rnn1_diff !== undefined ? `${pred.rnn1_diff > 0 ? '+' : ''}${pred.rnn1_diff}%` : 'N/A'}
+                      </td>
+
+                      {/* stock_UD Column */}
+                      <td style={{ padding: '15px 5px' }}>
+                        <span style={{ 
+                          padding: '3px 8px', 
+                          borderRadius: '4px', 
+                          fontSize: '0.75rem',
+                          fontWeight: 'bold',
+                          background: pred.stock_ud === 'UP' ? '#c6f6d5' : pred.stock_ud === 'DOWN' ? '#fed7d7' : '#f0f2f5',
+                          color: pred.stock_ud === 'UP' ? '#22543d' : pred.stock_ud === 'DOWN' ? '#822727' : '#666'
+                        }}>
+                          {pred.stock_ud || 'N/A'}
+                        </span>
+                      </td>
+
+                      <td style={{ padding: '15px 5px' }}>{stock.pe_ratio}</td>
+                      <td style={{ padding: '15px 5px' }}>
+                        <span style={{ 
+                          fontSize: '0.7rem', 
+                          padding: '4px 8px', 
+                          borderRadius: '15px',
+                          fontWeight: 'bold',
+                          background: stock.opportunity_level === "Strong" ? "#e6fffa" : stock.opportunity_level === "Moderate" ? "#fffaf0" : "#fff5f5",
+                          color: stock.opportunity_level === "Strong" ? "#2c7a7b" : stock.opportunity_level === "Moderate" ? "#b7791f" : "#c53030"
+                        }}>
+                          {stock.opportunity_level}
+                        </span>
+                      </td>
+                      <td style={{ padding: '15px 5px' }}>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                          <button 
+                            onClick={() => navigate(`/stock/${stock.id}`)}
+                            style={{ background: '#00d2ff', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer', fontSize: '0.75rem' }}
+                          >
+                            Graph
+                          </button>
+                          <button 
+                            onClick={() => removeStock(stock.id)}
+                            style={{ background: 'transparent', color: '#e53e3e', border: '1px solid #e53e3e', padding: '4px 8px', borderRadius: '5px', cursor: 'pointer', fontSize: '0.75rem' }}
+                          >
+                            Del
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {portfolio.stocks.length === 0 && (
                   <tr>
                     <td colSpan="9" style={{ padding: '60px', textAlign: 'center', color: '#999' }}>
@@ -260,68 +417,6 @@ function PortfolioDetail() {
           </div>
         </div>
 
-        {/* Portfolio Clusters Section */}
-        {portfolio.clusters && portfolio.clusters.length > 0 && (
-          <div style={{ marginTop: '40px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '25px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.8rem', color: '#333' }}>Portfolio Analysis: Smart Clusters</h3>
-              <span style={{ 
-                background: '#00d2ff', 
-                color: 'white', 
-                padding: '4px 12px', 
-                borderRadius: '20px', 
-                fontSize: '0.8rem',
-                fontWeight: 'bold'
-              }}>K-Means Logic</span>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-              {/* Cluster Graph */}
-              {portfolio.cluster_plot && (
-                <div style={{ background: 'white', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
-                  <h4 style={{ margin: '0 0 20px 0', fontSize: '1.3rem' }}>Cluster Visualization</h4>
-                  <img 
-                    src={`data:image/png;base64,${portfolio.cluster_plot}`} 
-                    alt="Portfolio Clusters Graph" 
-                    style={{ width: '100%', borderRadius: '12px' }}
-                  />
-                  <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '15px', textAlign: 'center' }}>
-                    Graph shows clusters based on Price and Volatility.
-                  </p>
-                </div>
-              )}
-
-              {/* Cluster Descriptions */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {portfolio.clusters.map((cluster) => (
-                  <div key={cluster.id} style={{ 
-                    background: 'white', 
-                    padding: '20px', 
-                    borderRadius: '15px', 
-                    boxShadow: '0 5px 15px rgba(0,0,0,0.05)',
-                    borderLeft: `6px solid ${cluster.id === 0 ? '#00d2ff' : cluster.id === 1 ? '#ff4d4f' : '#52c41a'}`
-                  }}>
-                    <h4 style={{ margin: '0 0 5px 0', fontSize: '1.1rem' }}>{cluster.label}</h4>
-                    <p style={{ margin: '0 0 10px 0', fontSize: '0.8rem', color: '#888' }}>{cluster.info}</p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      {cluster.stocks.map((s, idx) => (
-                        <span key={idx} style={{ 
-                          fontSize: '0.75rem', 
-                          padding: '3px 8px', 
-                          background: '#f0f2f5', 
-                          borderRadius: '5px', 
-                          fontWeight: 'bold' 
-                        }}>
-                          {s.symbol}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

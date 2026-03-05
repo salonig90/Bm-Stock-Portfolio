@@ -148,7 +148,9 @@ const StockCompare = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                   <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '12px' }}>
                     <div style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>₹{comparison.stock_details[sym].price}</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>
+                      {comparison.stock_details[sym].currency === 'USD' ? '$' : '₹'}{comparison.stock_details[sym].price}
+                    </div>
                   </div>
                   <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '12px' }}>
                     <div style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Sector</div>
@@ -156,7 +158,9 @@ const StockCompare = () => {
                   </div>
                   <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '12px' }}>
                     <div style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Market Cap</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>₹{(comparison.stock_details[sym].market_cap / 10000000).toFixed(2)} Cr</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+                      {comparison.stock_details[sym].currency === 'USD' ? '$' : '₹'}{(comparison.stock_details[sym].market_cap / 10000000).toFixed(2)} Cr
+                    </div>
                   </div>
                   <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '12px' }}>
                     <div style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Volatility</div>
