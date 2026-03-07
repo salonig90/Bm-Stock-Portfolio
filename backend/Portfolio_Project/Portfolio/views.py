@@ -42,6 +42,9 @@ INDUSTRY_SECTORS = {
     ],
     "Commodities": [
         'GC=F', 'SI=F'
+    ],
+    "Crypto": [
+        'BTC-USD', 'ETH-USD', 'SOL-USD', 'BNB-USD', 'XRP-USD'
     ]
 }
 
@@ -118,7 +121,7 @@ def fetch_realtime_stock(symbol, force_refresh=False):
         # 5. Fetch Historical Data & Predictions
         history_data = existing_stock.historical_data if existing_stock else None
         old_prediction = existing_stock.prediction_data if existing_stock else None
-        new_prediction_res = old_prediction
+        new_prediction_res = old_prediction # Default to old data
 
         # Always fetch history if we need new predictions
         try:
@@ -132,25 +135,25 @@ def fetch_realtime_stock(symbol, force_refresh=False):
                         "volume": int(row['Volume'])
                     })
                 
-                # NEW: Calculate Real-Time Accuracy by comparing yesterday's stored prediction with today's live price
+                # Calculate real-time accuracy by comparing the last stored prediction with current live price.
                 new_prediction_res = get_all_predictions(symbol, hist)
                 
-                if old_prediction and 'prediction_date' in old_prediction:
-                    # Check if the stored prediction was made on a different (earlier) day than today
-                    today_str = datetime.date.today().strftime('%Y-%m-%d')
-                    if old_prediction['prediction_date'] < today_str:
-                        # Calculation: ((Yesterday's Prediction - Today's Actual) / Yesterday's Prediction) * 100
-                        def calc_acc(pred, actual):
-                            if not pred or pred == 0: return None
-                            return round(((pred - actual) / pred) * 100, 2)
-                        
-                        current_actual = round(float(price), 2)
-                        new_prediction_res['lr1_diff'] = calc_acc(old_prediction.get('lr1'), current_actual)
-                        new_prediction_res['ts1_diff'] = calc_acc(old_prediction.get('ts1'), current_actual)
-                        new_prediction_res['rnn1_diff'] = calc_acc(old_prediction.get('rnn1'), current_actual)
+                if old_prediction and isinstance(new_prediction_res, dict):
+                    # Calculation: ((Last Prediction - Current Actual) / Last Prediction) * 100
+                    def calc_acc(pred, actual):
+                        if pred in (None, 0):
+                            return None
+                        return round(((pred - actual) / pred) * 100, 2)
+
+                    current_actual = round(float(price), 2)
+                    new_prediction_res['lr1_diff'] = calc_acc(old_prediction.get('lr1'), current_actual)
+                    new_prediction_res['ts1_diff'] = calc_acc(old_prediction.get('ts1'), current_actual)
+                    new_prediction_res['rnn1_diff'] = calc_acc(old_prediction.get('rnn1'), current_actual)
                 
         except Exception as e:
             print(f"Historical/Prediction error for {symbol}: {e}")
+
+        # 6. Save to DB
 
         # 6. Save to DB
         stock, created = Stocks.objects.update_or_create(
@@ -193,16 +196,8 @@ class SectorStocksAPIView(APIView):
             # 2. Fetch what we have in DB for these tickers
             stocks = Stocks.objects.filter(symbol__in=tickers, sector=name)
             
-            # 3. If DB has fewer stocks than expected, trigger background-style fetch for missing ones
-            if stocks.count() < len(tickers):
-                # We'll just fetch a few missing ones for now to avoid long timeouts
-                db_symbols = set(stocks.values_list('symbol', flat=True))
-                missing = [s for s in tickers if s not in db_symbols][:10] # Fetch first 10 missing
-                for s in missing:
-                    fetch_realtime_stock(s)
-                # Refresh queryset after fetching
-                stocks = Stocks.objects.filter(symbol__in=tickers, sector=name)
-
+            # 3. If DB has fewer stocks than expected, return what we have.
+            # (Background fetch logic removed to improve performance)
             serializer = StockSerializer(stocks, many=True)
             return Response(serializer.data)
         except Exception as e:
@@ -262,8 +257,52 @@ class StockHistoryAPIView(APIView):
     def get(self, request, pk):
         try:
             stock = Stocks.objects.get(pk=pk)
+            time_range = request.query_params.get('range', '1W')
             
-            # Check if we have cached historical data
+            # Mapping range to yfinance period and interval
+            # 1h: hourly points
+            # 1D: daily points
+            # 1W: weekly points
+            range_map = {
+                '1h': {'period': '7d', 'interval': '1h'},
+                '1D': {'period': '6mo', 'interval': '1d'},
+                '1W': {'period': '2y', 'interval': '1wk'},
+            }
+            
+            config = range_map.get(time_range, range_map['1W'])
+            
+            # Fetch fresh data for specific range if requested, otherwise use cache for daily
+            if time_range in ['1h', '1D', '1W']:
+                t_yf = yf.Ticker(stock.symbol)
+                hist = t_yf.history(period=config['period'], interval=config['interval'])
+                
+                if not hist.empty:
+                    history_data = []
+                    for date, row in hist.iterrows():
+                        history_data.append({
+                            "date": date.isoformat(),
+                            "price": round(row['Close'], 2),
+                            "volume": int(row['Volume'])
+                        })
+                    
+                    # Get predictions based on this granular data
+                    prediction_data = get_all_predictions(stock.symbol, hist, time_range)
+                    
+                    # Add simulated PE to history
+                    base_pe = stock.pe_ratio if stock.pe_ratio > 0 else 15
+                    first_price = history_data[0]['price'] if history_data else 1
+                    for item in history_data:
+                        if 'pe' not in item:
+                            item['pe'] = round(base_pe * (item['price'] / first_price), 2)
+
+                    return Response({
+                        "symbol": stock.symbol,
+                        "name": stock.name,
+                        "history": history_data,
+                        "prediction": prediction_data
+                    })
+
+            # Default to 1-year daily data (cached or refreshed)
             if stock.historical_data:
                 history_data = stock.historical_data
                 prediction_data = stock.prediction_data
@@ -344,7 +383,7 @@ class UserPortfolioAPIView(APIView):
             portfolio_data['stocks'] = stocks_data
             
             if isinstance(clustering_result, dict):
-                portfolio_data['clusters'] = clustering_result.get('groups', [])
+                portfolio_data['clusters'] = clustering_result.get('clusters', [])
                 portfolio_data['cluster_plot'] = clustering_result.get('plot', None)
             else:
                 portfolio_data['clusters'] = []
@@ -379,7 +418,7 @@ class RefreshStocksAPIView(APIView):
                     results.append(stock.symbol)
             
             return Response({
-                "message": f"Successfully refreshed {len(results)} stocks from yfinance.",
+                "message": f"Refresh complete: processed {len(results)} portfolio stocks from yfinance.",
                 "refreshed_stocks": results
             })
         except Exception as e:
@@ -439,7 +478,10 @@ class StockComparisonAPIView(APIView):
         try:
             comparison_data = compare_stocks(symbol1, symbol2)
             if not comparison_data:
-                return Response({"error": "Could not fetch data for comparison"}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"error": "Could not compare these symbols due to insufficient overlapping historical data."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             return Response(comparison_data)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

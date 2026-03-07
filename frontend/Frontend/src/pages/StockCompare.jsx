@@ -11,15 +11,18 @@ const StockCompare = () => {
   const [suggestions2, setSuggestions2] = useState([]);
 
   const fetchSuggestions = async (query, setSuggestions) => {
-    if (!query || query.length < 2) {
+    if (!query || query.length < 1) {
       setSuggestions([]);
       return;
     }
     try {
-      const res = await API.get(`stocks/search/?q=${query}`);
+      const res = await API.get("stocks/search", {
+        params: { q: query }
+      });
       setSuggestions(res.data || []);
     } catch (err) {
-      // Error handled silently
+      setSuggestions([]);
+      console.error("Suggestion fetch error:", err);
     }
   };
 
@@ -32,7 +35,9 @@ const StockCompare = () => {
     setComparison(null);
     setError(null);
     try {
-      const res = await API.get(`stocks/compare/?s1=${s1}&s2=${s2}`);
+      const res = await API.get("stocks/compare/", {
+        params: { s1, s2 }
+      });
       setComparison(res.data);
     } catch (err) {
       setError(err.response?.data?.error || "Error comparing stocks. Please try again.");
@@ -73,8 +78,7 @@ const StockCompare = () => {
             <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: 'white', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto' }}>
               {suggestions1.map(stock => (
                 <div key={stock.id} onClick={() => { setS1(stock.symbol); setSuggestions1([]); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', color: '#333' }}>
-                  <div style={{ fontWeight: 'bold' }}>{stock.symbol}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#888' }}>{stock.name}</div>
+                  <div style={{ fontWeight: 'bold' }}>{stock.name} ({stock.symbol})</div>
                 </div>
               ))}
             </div>
@@ -100,8 +104,7 @@ const StockCompare = () => {
             <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: 'white', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', maxHeight: '200px', overflowY: 'auto' }}>
               {suggestions2.map(stock => (
                 <div key={stock.id} onClick={() => { setS2(stock.symbol); setSuggestions2([]); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', color: '#333' }}>
-                  <div style={{ fontWeight: 'bold' }}>{stock.symbol}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#888' }}>{stock.name}</div>
+                  <div style={{ fontWeight: 'bold' }}>{stock.name} ({stock.symbol})</div>
                 </div>
               ))}
             </div>

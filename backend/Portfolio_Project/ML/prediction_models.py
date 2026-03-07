@@ -3,14 +3,15 @@ import pandas as pd
 import datetime
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
+from statsmodels.tsa.arima.model import ARIMA
 from sklearn.preprocessing import MinMaxScaler
 import warnings
 
 # Suppress warnings from statsmodels
 warnings.filterwarnings("ignore")
 
-def predict_lr(df):
-    """Linear Regression for next day price."""
+def predict_lr_multi(df, days=7):
+    """Linear Regression for multiple days."""
     try:
         df = df.copy()
         df['Day'] = np.arange(len(df))
@@ -18,19 +19,63 @@ def predict_lr(df):
         y = df['Close'].values
         model = LinearRegression()
         model.fit(X, y)
-        next_day = np.array([[len(df)]])
-        return float(model.predict(next_day)[0])
+        
+        preds = []
+        for i in range(days):
+            next_day = np.array([[len(df) + i]])
+            preds.append(float(model.predict(next_day)[0]))
+        return preds
     except:
-        return None
+        return []
 
-def predict_ts(df):
-    """Time Series (Exponential Smoothing) for next day price."""
+def predict_ts_multi(df, days=7):
+    """Time Series (Exponential Smoothing) for multiple days."""
     try:
         model = ExponentialSmoothing(df['Close'], trend='add', seasonal=None)
         fit = model.fit()
-        return float(fit.forecast(1).iloc[0])
+        return fit.forecast(days).tolist()
     except:
-        return None
+        return []
+
+def predict_arima_multi(df, days=7):
+    """ARIMA for multiple days."""
+    try:
+        model = ARIMA(df['Close'], order=(5,1,0))
+        fit = model.fit()
+        return fit.forecast(days).tolist()
+    except:
+        return []
+
+def predict_rnn_multi(df, days=7):
+    """Simulated RNN for multiple days."""
+    try:
+        prices = df['Close'].tolist()
+        preds = []
+        for _ in range(days):
+            ema_short = pd.Series(prices).ewm(span=5).mean().iloc[-1]
+            ema_long = pd.Series(prices).ewm(span=20).mean().iloc[-1]
+            momentum = ema_short / ema_long
+            next_price = prices[-1] * momentum
+            preds.append(float(next_price))
+            prices.append(next_price)
+        return preds
+    except:
+        return []
+
+def predict_lr(df):
+    """Linear Regression for next day price."""
+    preds = predict_lr_multi(df, 1)
+    return preds[0] if preds else None
+
+def predict_ts(df):
+    """Time Series (Exponential Smoothing) for next day price."""
+    preds = predict_ts_multi(df, 1)
+    return preds[0] if preds else None
+
+def predict_arima(df):
+    """ARIMA for next day price."""
+    preds = predict_arima_multi(df, 1)
+    return preds[0] if preds else None
 
 def predict_rnn_simple(df):
     """
@@ -75,23 +120,83 @@ def predict_high_low_logistic(df):
     except:
         return "N/A"
 
-def get_all_predictions(symbol, hist_df):
-    """Main entry point to get all predictions for tomorrow."""
+def get_all_predictions(symbol, hist_df, time_range='1W'):
+    """Main entry point to get all predictions for the next period."""
     if hist_df is None or hist_df.empty or len(hist_df) < 5:
         return None
     
-    # 1. Get predictions FOR tomorrow (using data up to today)
+    # Determine forecast steps based on selected range granularity.
+    # 1h -> next 24 hourly points
+    # 1D -> next 14 daily points
+    # 1W -> next 12 weekly points
+    forecast_steps = 12
+    if time_range == '1h':
+        forecast_steps = 24
+    elif time_range == '1D':
+        forecast_steps = 14
+    
+    # 2. Get predictions FOR next step
     lr1_next = predict_lr(hist_df)
     ts1_next = predict_ts(hist_df)
     rnn1_next = predict_rnn_simple(hist_df)
+    arima1_next = predict_arima(hist_df)
     stock_ud = predict_high_low_logistic(hist_df)
 
-    # Return only the predictions for tomorrow. 
-    # Accuracy (% diff) will be calculated in views.py by comparing this to tomorrow's price.
+    # 3. Get forecasts for each model
+    lr_forecast = predict_lr_multi(hist_df, forecast_steps)
+    ts_forecast = predict_ts_multi(hist_df, forecast_steps)
+    rnn_forecast = predict_rnn_multi(hist_df, forecast_steps)
+    arima_forecast = predict_arima_multi(hist_df, forecast_steps)
+
+    # 4. Helper to format data with correct date/time gaps and add some volatility
+    # to avoid perfectly straight lines in the UI.
+    def format_forecast(preds, range_type):
+        if not preds: return []
+        formatted = []
+        last_date_str = hist_df.index[-1] if hasattr(hist_df.index[-1], 'strftime') else hist_df.iloc[-1].name
+        
+        try:
+            last_date = pd.to_datetime(last_date_str)
+        except:
+            last_date = datetime.datetime.now()
+
+        # Calculate historical volatility to add "jitter" to the straight lines
+        returns = hist_df['Close'].pct_change().dropna()
+        volatility = returns.std() if not returns.empty else 0.01
+        
+        current_price = hist_df['Close'].iloc[-1]
+
+        for i, p in enumerate(preds):
+            # Add a small random jitter (0.1x of standard volatility) 
+            # to make the graph look like real stock movement rather than a math line
+            jitter_pct = np.random.normal(0, volatility * 0.1)
+            jittered_price = p * (1 + jitter_pct)
+            
+            if range_type == '1h':
+                pred_date = last_date + datetime.timedelta(hours=i+1)
+            elif range_type == '1D':
+                pred_date = last_date + datetime.timedelta(days=i+1)
+            else:
+                pred_date = last_date + datetime.timedelta(weeks=i+1)
+                
+            formatted.append({
+                "date": pred_date.isoformat(), 
+                "price": round(jittered_price, 2)
+            })
+        return formatted
+
+    # Return predictions and forecasts
     return {
         "lr1": round(lr1_next, 2) if lr1_next else None,
         "ts1": round(ts1_next, 2) if ts1_next else None,
         "rnn1": round(rnn1_next, 2) if rnn1_next else None,
+        "arima1": round(arima1_next, 2) if arima1_next else None,
         "stock_ud": stock_ud,
-        "prediction_date": datetime.date.today().strftime('%Y-%m-%d')
+        "prediction_date": datetime.date.today().strftime('%Y-%m-%d'),
+        "forecasts": {
+            "lr": format_forecast(lr_forecast, time_range),
+            "ts": format_forecast(ts_forecast, time_range),
+            "rnn": format_forecast(rnn_forecast, time_range),
+            "arima": format_forecast(arima_forecast, time_range)
+        }
     }

@@ -14,18 +14,29 @@ import API from "./services/api";
 function Navbar({ username, onLogout }) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSector, setSelectedSector] = useState("All");
-  const [sectors, setSectors] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef(null);
 
-  useEffect(() => {
-    API.get("sectors/")
-      .then((res) => setSectors(res.data))
-      .catch((err) => console.error("Error fetching sectors:", err));
-  }, []);
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const response = await API.post("stocks/refresh/");
+      alert(response.data.message || "Market data refreshed successfully!");
+      // If we're on the portfolio page, we might want to reload it
+      if (window.location.pathname === "/portfolio") {
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error("Refresh error:", err);
+      const errorMsg = err.response?.data?.error || err.message || "Error refreshing market data.";
+      alert(errorMsg);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -34,7 +45,7 @@ function Navbar({ username, onLogout }) {
         return;
       }
       try {
-        const response = await API.get(`stocks/search?q=${searchQuery}&sector=${selectedSector}`);
+        const response = await API.get(`stocks/search?q=${searchQuery}`);
         setSuggestions(response.data || []);
       } catch (err) {
         console.error("Suggestion error:", err);
@@ -43,7 +54,7 @@ function Navbar({ username, onLogout }) {
 
     const timeoutId = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(timeoutId);
-  }, [searchQuery, selectedSector]);
+  }, [searchQuery]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -68,7 +79,7 @@ function Navbar({ username, onLogout }) {
         actualQuery = match[1];
       }
 
-      const response = await API.get(`stocks/search?q=${actualQuery}&sector=${selectedSector}`);
+      const response = await API.get(`stocks/search?q=${actualQuery}`);
       if (response.data && response.data.length > 0) {
         navigate(`/stock/${response.data[0].id}`);
         setShowSuggestions(false);
@@ -88,16 +99,16 @@ function Navbar({ username, onLogout }) {
     setSearchQuery(`${stock.name} (${stock.symbol})`);
     setShowSuggestions(false);
     // Navigate immediately to fetch data
-    navigate(`/stock/${stock.id}`); 
+    navigate(`/stock/${stock.id}`);
   };
 
   return (
-    <nav style={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      padding: '15px 40px', 
-      background: '#0f2027', 
+    <nav style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '15px 40px',
+      background: '#0f2027',
       color: 'white',
       boxShadow: '0 2px 10px rgba(0,0,0,0.3)',
       position: 'sticky',
@@ -105,36 +116,17 @@ function Navbar({ username, onLogout }) {
       zIndex: 1000
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <Link to="/" style={{ 
-          fontSize: '1.5rem', 
-          fontWeight: '800', 
-          color: 'white', 
-          textDecoration: 'none' 
+        <Link to="/" style={{
+          fontSize: '1.5rem',
+          fontWeight: '800',
+          color: 'white',
+          textDecoration: 'none'
         }}>
           Stock<span style={{ color: '#00d2ff' }}>Whiz</span>
         </Link>
-        
-        {/* Sector and Search Bar */}
-        <div ref={searchRef} style={{ display: 'flex', gap: '10px', alignItems: 'center', position: 'relative' }}>
-          <select 
-            value={selectedSector}
-            onChange={(e) => setSelectedSector(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '20px',
-              border: 'none',
-              background: 'rgba(255,255,255,0.1)',
-              color: 'white',
-              outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="All" style={{ color: 'black' }}>All Sectors</option>
-            {sectors.map((s, idx) => (
-              <option key={idx} value={s} style={{ color: 'black' }}>{s}</option>
-            ))}
-          </select>
 
+        {/* Search Bar */}
+        <div ref={searchRef} style={{ display: 'flex', gap: '10px', alignItems: 'center', position: 'relative' }}>
           <form onSubmit={handleSearch} style={{ position: 'relative' }}>
             <input
               type="text"
@@ -157,8 +149,8 @@ function Navbar({ username, onLogout }) {
                 transition: 'all 0.3s ease'
               }}
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isSearching}
               style={{
                 position: 'absolute',
@@ -221,23 +213,44 @@ function Navbar({ username, onLogout }) {
       </div>
 
       <div style={{ display: 'flex', gap: '25px', alignItems: 'center' }}>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          style={{
+            background: isRefreshing ? '#4a5568' : '#00d2ff',
+            color: 'white',
+            border: 'none',
+            padding: '8px 18px',
+            borderRadius: '20px',
+            cursor: isRefreshing ? 'not-allowed' : 'pointer',
+            fontWeight: 'bold',
+            fontSize: '0.9rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          {isRefreshing ? "Updating..." : "🔄 Refresh"}
+        </button>
         <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Home</Link>
         <Link to="/sectors" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Sectors</Link>
         <Link to="/compare" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Compare Stocks</Link>
         <Link to="/gold-silver" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>Gold Silver Analysis</Link>
         <Link to="/portfolio" style={{ color: 'white', textDecoration: 'none', fontWeight: '500' }}>My Portfolio</Link>
-        
+
         {username ? (
           <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
             <span style={{ color: '#00d2ff', fontWeight: 'bold' }}>Hi, {username}</span>
-            <button 
+            <button
               onClick={onLogout}
-              style={{ 
-                background: 'transparent', 
-                color: 'white', 
-                border: '1px solid #00d2ff', 
-                padding: '5px 15px', 
-                borderRadius: '20px', 
+              style={{
+                background: 'transparent',
+                color: 'white',
+                border: '1px solid #00d2ff',
+                padding: '5px 15px',
+                borderRadius: '20px',
                 cursor: 'pointer',
                 fontWeight: 'bold'
               }}
@@ -246,13 +259,13 @@ function Navbar({ username, onLogout }) {
             </button>
           </div>
         ) : (
-          <Link to="/login" style={{ 
-            background: '#00d2ff', 
-            color: 'white', 
-            padding: '8px 20px', 
-            borderRadius: '20px', 
-            textDecoration: 'none', 
-            fontWeight: 'bold' 
+          <Link to="/login" style={{
+            background: '#00d2ff',
+            color: 'white',
+            padding: '8px 20px',
+            borderRadius: '20px',
+            textDecoration: 'none',
+            fontWeight: 'bold'
           }}>
             Login
           </Link>
@@ -263,7 +276,17 @@ function Navbar({ username, onLogout }) {
 }
 
 function App() {
-  const [username, setUsername] = useState(localStorage.getItem("username"));
+  const getInitialUsername = () => {
+    const token = localStorage.getItem("token");
+    if (!token || token === "null" || token === "undefined") {
+      localStorage.removeItem("username");
+      return null;
+    }
+    return localStorage.getItem("username");
+  };
+
+  const [username, setUsername] = useState(getInitialUsername);
+  const isLoggedIn = !!localStorage.getItem("token");
 
   const handleLogin = (name) => {
     setUsername(name);
@@ -283,26 +306,26 @@ function App() {
         <Route path="/sectors" element={<Sectors />} />
         <Route path="/sector/:name" element={<Sector />} />
         <Route path="/gold-silver" element={<GoldSilverAnalysis />} />
-        
+
         {/* Protected Routes */}
-        <Route 
-          path="/portfolio" 
-          element={username ? <PortfolioDetail /> : <Navigate to="/login" />} 
+        <Route
+          path="/portfolio"
+          element={isLoggedIn ? <PortfolioDetail /> : <Navigate to="/login" />}
         />
-        
+
         <Route path="/compare" element={<StockCompare />} />
         <Route path="/stock/:id" element={<StockDetail />} />
-        
+
         {/* Auth Routes */}
-        <Route 
-          path="/login" 
-          element={!username ? <Login onLogin={handleLogin} /> : <Navigate to="/portfolio" />} 
+        <Route
+          path="/login"
+          element={!isLoggedIn ? <Login onLogin={handleLogin} /> : <Navigate to="/portfolio" />}
         />
-        <Route 
-          path="/signup" 
-          element={!username ? <Signup /> : <Navigate to="/portfolio" />} 
+        <Route
+          path="/signup"
+          element={!isLoggedIn ? <Signup /> : <Navigate to="/portfolio" />}
         />
-        
+
         <Route path="*" element={<div style={{ padding: '100px', textAlign: 'center' }}>404 - Page Not Found</div>} />
       </Routes>
     </BrowserRouter>

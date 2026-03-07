@@ -15,20 +15,6 @@ function PortfolioDetail() {
 
   const [error, setError] = useState(null);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      const response = await API.post("stocks/refresh/");
-      alert(response.data.message || "Data refreshed successfully!");
-      fetchPortfolio(); // Refresh the list from DB
-    } catch (err) {
-      console.error("Refresh error:", err);
-      alert("Error refreshing data.");
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
   useEffect(() => {
     fetchPortfolio();
     API.get("sectors/").then((res) => setSectors(res.data));
@@ -43,7 +29,9 @@ function PortfolioDetail() {
       .catch((err) => {
         console.error("Error fetching portfolio:", err);
         if (err.response?.status === 401 || err.response?.status === 403) {
-          navigate("/login");
+          localStorage.removeItem("token");
+          localStorage.removeItem("username");
+          navigate("/login", { replace: true });
         } else {
           setError(err.response?.data?.error || "Failed to load portfolio. Please check your connection or server logs.");
         }
@@ -276,27 +264,8 @@ function PortfolioDetail() {
 
         {/* Stock Data List */}
         <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#333' }}>Portfolio Holdings</h3>
-            <button 
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              style={{ 
-                background: '#00d2ff', 
-                color: 'white', 
-                border: 'none', 
-                padding: '10px 20px', 
-                borderRadius: '8px', 
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                transition: 'all 0.3s'
-              }}
-            >
-              {isRefreshing ? "Updating..." : "🔄 Refresh"}
-            </button>
           </div>
           
           <div style={{ overflowX: 'auto' }}>
@@ -340,7 +309,7 @@ function PortfolioDetail() {
                         {pred.lr1 ? `${currencySymbol}${pred.lr1}` : 'N/A'}
                       </td>
                       <td style={{ padding: '15px 5px', color: pred.lr1_diff >= 0 ? '#38a169' : '#e53e3e', fontWeight: 'bold' }}>
-                        {pred.lr1_diff !== undefined ? `${pred.lr1_diff > 0 ? '+' : ''}${pred.lr1_diff}%` : 'N/A'}
+                        {pred.lr1_diff !== undefined && pred.lr1_diff !== null ? `${pred.lr1_diff > 0 ? '+' : ''}${pred.lr1_diff}%` : 'N/A'}
                       </td>
 
                       {/* TS1 Columns */}
@@ -348,7 +317,7 @@ function PortfolioDetail() {
                         {pred.ts1 ? `${currencySymbol}${pred.ts1}` : 'N/A'}
                       </td>
                       <td style={{ padding: '15px 5px', color: pred.ts1_diff >= 0 ? '#38a169' : '#e53e3e', fontWeight: 'bold' }}>
-                        {pred.ts1_diff !== undefined ? `${pred.ts1_diff > 0 ? '+' : ''}${pred.ts1_diff}%` : 'N/A'}
+                        {pred.ts1_diff !== undefined && pred.ts1_diff !== null ? `${pred.ts1_diff > 0 ? '+' : ''}${pred.ts1_diff}%` : 'N/A'}
                       </td>
 
                       {/* RNN1 Columns */}
@@ -356,7 +325,7 @@ function PortfolioDetail() {
                         {pred.rnn1 ? `${currencySymbol}${pred.rnn1}` : 'N/A'}
                       </td>
                       <td style={{ padding: '15px 5px', color: pred.rnn1_diff >= 0 ? '#38a169' : '#e53e3e', fontWeight: 'bold' }}>
-                        {pred.rnn1_diff !== undefined ? `${pred.rnn1_diff > 0 ? '+' : ''}${pred.rnn1_diff}%` : 'N/A'}
+                        {pred.rnn1_diff !== undefined && pred.rnn1_diff !== null ? `${pred.rnn1_diff > 0 ? '+' : ''}${pred.rnn1_diff}%` : 'N/A'}
                       </td>
 
                       {/* stock_UD Column */}

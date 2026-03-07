@@ -8,6 +8,7 @@ from scipy import stats
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 import numpy as np
 import yfinance as yf
 import pandas as pd
@@ -114,11 +115,15 @@ def compare_stocks(symbol1, symbol2):
     if hist1.empty or hist2.empty:
         return None
         
-    # Align data
+    # Align data on common dates
     df = pd.DataFrame({
         symbol1: hist1['Close'],
         symbol2: hist2['Close']
     }).dropna()
+
+    # Some cross-market pairs can have no overlapping trading sessions after alignment.
+    if df.empty or len(df) < 2:
+        return None
     
     # 2. Correlation
     correlation = df[symbol1].corr(df[symbol2])
@@ -144,11 +149,14 @@ def compare_stocks(symbol1, symbol2):
     
     # 4. Train Logistic Regression
     try:
+        if df_lr.empty:
+            raise ValueError("Not enough aligned return data")
+
         model = LogisticRegression()
         model.fit(X, y)
         
         # Predict for the next day using the most recent data
-        latest_features = df_returns[features].iloc[-1].values.reshape(1, -1)
+        latest_features = df_lr[features].iloc[-1].values.reshape(1, -1)
         outperform_prob = model.predict_proba(latest_features)[0][1]
         recommendation = f"Based on Logistic Regression, {symbol1} has a {outperform_prob*100:.1f}% probability of outperforming {symbol2} tomorrow."
     except Exception as e:
@@ -212,8 +220,8 @@ def compare_stocks(symbol1, symbol2):
 
 def cluster_portfolio_stocks(stocks_list):
     """
-    Groups portfolio stocks into clusters using K-Means with parameters from fetch_data logic.
-    Features: Price, PE Ratio, Growth, and Annual Volatility.
+    Groups portfolio stocks into 3 clusters (High Performance, Hold, Low Performance)
+    using K-Means with the 2 best parameters: Annual Growth and Volatility (Risk).
     """
     if not stocks_list or len(stocks_list) < 3:
         return None
@@ -223,19 +231,11 @@ def cluster_portfolio_stocks(stocks_list):
     
     for stock in stocks_list:
         try:
-            # 1. Basic properties from model
             symbol = stock.symbol if hasattr(stock, 'symbol') else stock.get('symbol')
-            price = float(stock.price if hasattr(stock, 'price') else stock.get('price') or 0)
-            pe_ratio = float(stock.pe_ratio if hasattr(stock, 'pe_ratio') else stock.get('pe_ratio') or 0)
-            
             if not symbol:
                 continue
 
-            # 2. Fetch additional parameters inspired by fetch_data.py
             ticker = yf.Ticker(symbol)
-            
-            # Growth logic (simplified from fetch_data.py)
-            # We'll use 1-year price growth as a proxy for financial growth if not available
             hist = ticker.history(period="1y")
             if hist.empty:
                 continue
@@ -247,10 +247,8 @@ def cluster_portfolio_stocks(stocks_list):
             end_price = hist['Close'].iloc[-1]
             growth = ((end_price / start_price) - 1) * 100 if start_price != 0 else 0
             
-            # Combine all parameters
+            # Use only Growth and Volatility for clustering (2 best parameters)
             data.append([
-                price,
-                pe_ratio,
                 growth,
                 volatility
             ])
@@ -259,46 +257,58 @@ def cluster_portfolio_stocks(stocks_list):
             print(f"Clustering parameter fetch error for {symbol}: {e}")
             continue
 
-    if len(data) < 2:
+    if len(data) < 3:
         return None
 
     # Standardize features
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(data)
 
-    # Determine number of clusters
-    n_clusters = min(3, len(data))
-    
+    # Determine number of clusters (fixed to 3 as requested)
+    n_clusters = 3
     kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
     clusters = kmeans.fit_predict(scaled_data)
 
+    # Analyze clusters to assign logical labels: High Performance, Hold, Low Performance
+    # We'll use a score based on growth (positive) and volatility (negative)
+    cluster_scores = []
+    for i in range(n_clusters):
+        cluster_mask = (clusters == i)
+        avg_growth = np.mean(np.array(data)[cluster_mask, 0])
+        avg_vol = np.mean(np.array(data)[cluster_mask, 1])
+        # Performance score: high growth and reasonable volatility is good
+        score = avg_growth - (avg_vol * 0.5) 
+        cluster_scores.append((i, score))
+
+    # Sort clusters by score descending
+    sorted_clusters = sorted(cluster_scores, key=lambda x: x[1], reverse=True)
+    
+    label_mapping = {
+        sorted_clusters[0][0]: "High Performance",
+        sorted_clusters[1][0]: "Hold",
+        sorted_clusters[2][0]: "Low Performance"
+    }
+
     # --- Generate Cluster Plot ---
     fig, ax = plt.subplots(figsize=(10, 6))
+    colors = ['#52c41a', '#faad14', '#ff4d4f'] # Green, Yellow, Red
     
-    # We'll plot Growth vs Volatility as they are often the most descriptive pairs for risk/reward
-    colors = ['#00d2ff', '#ff4d4f', '#52c41a']
-    for i in range(n_clusters):
-        # Index 2 is Growth, Index 3 is Volatility in our 'data' array
-        # But we must use scaled_data for consistent plotting
-        points = scaled_data[clusters == i]
-        ax.scatter(points[:, 2], points[:, 3], s=120, c=colors[i], label=f'Cluster {i+1}', alpha=0.8, edgecolors='white')
+    for i, (cluster_idx, label) in enumerate(label_mapping.items()):
+        # Use scaled_data for plotting to maintain visualization consistency
+        points = scaled_data[clusters == cluster_idx]
+        ax.scatter(points[:, 0], points[:, 1], s=150, c=colors[i], label=label, alpha=0.8, edgecolors='white')
         
         # Add labels for each stock point
         for j, symbol in enumerate(symbols):
-            if clusters[j] == i:
-                ax.annotate(symbol, (scaled_data[j, 2], scaled_data[j, 3]), xytext=(5, 5), textcoords='offset points', fontsize=10, fontweight='bold')
+            if clusters[j] == cluster_idx:
+                ax.annotate(symbol, (scaled_data[j, 0], scaled_data[j, 1]), xytext=(5, 5), textcoords='offset points', fontsize=10, fontweight='bold')
 
-    # Plot centroids
-    centroids = kmeans.cluster_centers_
-    ax.scatter(centroids[:, 2], centroids[:, 3], s=400, c='black', marker='*', label='Group Centers')
-
-    ax.set_title("Portfolio Clustering Analysis (Growth vs Volatility)", fontsize=16, fontweight='bold', pad=20)
+    ax.set_title("Portfolio Clustering (Growth vs Risk)", fontsize=16, fontweight='bold', pad=20)
     ax.set_xlabel("Standardized Annual Growth", fontsize=12)
-    ax.set_ylabel("Standardized Risk (Volatility)", fontsize=12)
+    ax.set_ylabel("Standardized Annual Risk (Volatility)", fontsize=12)
     ax.legend(frameon=True, shadow=True)
     ax.grid(True, linestyle='--', alpha=0.5)
     
-    # Add background styling
     ax.set_facecolor('#fdfdfd')
     fig.patch.set_facecolor('#ffffff')
     
@@ -308,18 +318,20 @@ def cluster_portfolio_stocks(stocks_list):
     # Map results
     cluster_groups = {}
     descriptions = {
-        0: {"label": "Balanced / Core", "info": "Stocks with moderate growth and controlled risk levels."},
-        1: {"label": "High Growth / High Risk", "info": "Aggressive stocks showing strong upward trends but high price swings."},
-        2: {"label": "Value / Defensive", "info": "Stable stocks with lower volatility, often undervalued by the market."}
+        "High Performance": "Stocks with strong growth metrics and favorable risk-adjusted returns.",
+        "Hold": "Stocks with moderate metrics, suitable for long-term holding.",
+        "Low Performance": "Stocks showing weaker growth or excessive volatility relative to returns."
     }
 
     for i in range(len(symbols)):
-        c_id = int(clusters[i])
-        if c_id not in cluster_groups:
-            cluster_groups[c_id] = {
-                "id": c_id,
-                "label": descriptions.get(c_id, {}).get("label", f"Group {c_id+1}"),
-                "info": descriptions.get(c_id, {}).get("info", ""),
+        c_idx = int(clusters[i])
+        label = label_mapping[c_idx]
+        
+        if label not in cluster_groups:
+            cluster_groups[label] = {
+                "id": c_idx,
+                "label": label,
+                "info": descriptions[label],
                 "stocks": []
             }
         
@@ -327,15 +339,15 @@ def cluster_portfolio_stocks(stocks_list):
         name = s_obj.name if s_obj and hasattr(s_obj, 'name') else (s_obj.get('name') if s_obj else symbols[i])
         price = s_obj.price if s_obj and hasattr(s_obj, 'price') else (s_obj.get('price') if s_obj else 0)
         
-        cluster_groups[c_id]["stocks"].append({
+        cluster_groups[label]["stocks"].append({
             "symbol": symbols[i],
             "name": name,
-            "price": float(price or 0)
+            "price": price
         })
-    
+
     return {
-        "groups": list(cluster_groups.values()),
-        "plot": cluster_plot
+        "plot": cluster_plot,
+        "clusters": list(cluster_groups.values())
     }
 
 def get_portfolio_pe_analysis(stocks_list):

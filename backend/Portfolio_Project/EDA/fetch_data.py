@@ -178,33 +178,76 @@ def get_financial_data(ticker_symbol):
 
 # ✅ Grouped Industry Sectors (30 stocks each)
 INDUSTRY_SECTORS = {
+
     "Automobile": [
-        'TSLA', 'TM', 'F', 'GM', 'RACE', 'MARUTI.NS', 'TATAMOTORS.NS', 'M&M.NS', 'HEROMOTOCO.NS', 'EICHERMOT.NS',
-        'HMC', 'VOW3.DE', 'BMW.DE', 'MBG.DE', 'STLA', 'RIVN', 'LCID', 'NIO', 'LI', 'XPEV',
-        'ASHOKLEY.NS', 'TVSMOTOR.NS', 'BAJAJ-AUTO.NS', 'BHARATFORG.NS', 'SONACOMS.NS', 'MOTHERSON.NS', 'HYMTF', 'NSANY', 'SUBARY', 'ADR.F'
+        'TSLA', 'TM', 'F', 'GM', 'RACE',
+        'HMC', 'STLA', 'RIVN', 'LCID', 'NIO',
+        'LI', 'XPEV',
+        'MARUTI.NS', 'TATAMOTORS.NS', 'M&M.NS', 'HEROMOTOCO.NS', 'EICHERMOT.NS',
+        'ASHOKLEY.NS', 'TVSMOTOR.NS', 'BAJAJ-AUTO.NS', 'BHARATFORG.NS',
+        'SONACOMS.NS', 'MOTHERSON.NS'
     ],
+
     "Banking": [
-        'JPM', 'BAC', 'GS', 'MS', 'HSBC', 'HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS', 'AXISBANK.NS', 'KOTAKBANK.NS',
-        'WFC', 'C', 'USB', 'PNC', 'TFC', 'RY', 'TD', 'BMO', 'BNS', 'SAN',
-        'BBVA', 'UBS', 'DB', 'BNP.PA', 'PNB.NS', 'BANKBARODA.NS', 'CANBK.NS', 'UNIONBANK.NS', 'IDBI.NS', 'FEDERALBNK.NS'
+        'JPM', 'BAC', 'GS', 'MS', 'WFC',
+        'C', 'USB', 'PNC', 'TFC',
+        'RY', 'TD', 'BMO', 'BNS',
+        'HSBC', 'SAN', 'UBS', 'DB',
+        'HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS',
+        'AXISBANK.NS', 'KOTAKBANK.NS',
+        'PNB.NS', 'BANKBARODA.NS', 'CANBK.NS',
+        'UNIONBANK.NS', 'IDBI.NS', 'FEDERALBNK.NS'
     ],
+
     "IT": [
-        'AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'TCS.NS', 'INFY.NS', 'WIPRO.NS', 'HCLTECH.NS', 'TECHM.NS',
-        'AMZN', 'TSM', 'ASML', 'AVGO', 'ORCL', 'CSCO', 'CRM', 'ADBE', 'AMD', 'TXN',
-        'QCOM', 'INTC', 'IBM', 'SAP', 'LTIM.NS', 'MPHASIS.NS', 'COFORGE.NS', 'PERSISTENT.NS', 'LTTS.NS', 'KPITTECH.NS'
+        'AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA',
+        'AMZN', 'TSM', 'ASML', 'AVGO', 'ORCL',
+        'CSCO', 'CRM', 'ADBE', 'AMD', 'TXN',
+        'QCOM', 'INTC', 'IBM', 'SAP',
+        'TCS.NS', 'INFY.NS', 'WIPRO.NS',
+        'HCLTECH.NS', 'TECHM.NS',
+        'LTIM.NS', 'MPHASIS.NS', 'COFORGE.NS',
+        'PERSISTENT.NS', 'LTTS.NS', 'KPITTECH.NS'
     ],
+
     "Tata": [
-        'TCS.NS', 'TATAMOTORS.NS', 'TATASTEEL.NS', 'TATAPOWER.NS', 'TITAN.NS', 'TATACONSUM.NS', 'TATACOMM.NS', 'TATAELXSI.NS', 'TATAINVEST.NS', 'TATAMTRDVR.NS',
-        'INDHOTEL.NS', 'TATACHEM.NS', 'TRENT.NS', 'VOLTAS.NS', 'NELCO.NS', 'RALLIS.NS', 'TTML.NS', 'TINPLATE.NS', 'TRF.NS',
-        'TAYO.NS', 'BBL.NS', 'AUTOAXLES.NS', 'BANCOINDIA.NS', 'BOMDYEING.NS', 'ARTEMISMS.NS', 'TATAPIGMENTS.NS', 'TATAPOINT.NS', 'TATACOFFEE.NS', 'TATASTEELBSL.NS'
+        'TCS.NS', 'TMCV.NS', 'TATASTEEL.NS',
+        'TATAPOWER.NS', 'TITAN.NS', 'TATACONSUM.NS',
+        'TATACOMM.NS', 'TATAELXSI.NS',
+        'INDHOTEL.NS', 'TATACHEM.NS',
+        'TRENT.NS', 'VOLTAS.NS',
+        'NELCO.NS', 'RALLIS.NS',
+        'TTML.NS', 'TINPLATE.NS'
     ],
+
     "Adani": [
-        'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENSOL.NS', 'ATGL.NS', 'AWL.NS', 'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS',
-        'ADANIWILMAR.NS', 'ADANIENERGY.NS', 'ADANITRANS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIENSOL.NS', 'ATGL.NS', 'AWL.NS',
-        'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS', 'ADANIWILMAR.NS', 'ADANIENERGY.NS', 'ADANITRANS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENT.NS', 'ADANIPORTS.NS'
+        'ADANIENT.NS',
+        'ADANIPORTS.NS',
+        'ADANIGREEN.NS',
+        'ADANIPOWER.NS',
+        'ADANIENSOL.NS',
+        'ATGL.NS',
+        'AWL.NS',
+        'ACC.NS',
+        'AMBUJACEM.NS',
+        'NDTV.NS'
     ],
+
     "Commodities": [
-        'GC=F', 'SI=F'
+        'GC=F',   # Gold Futures
+        'SI=F',   # Silver Futures
+        'CL=F',   # Crude Oil
+        'NG=F'    # Natural Gas
+    ],
+
+    "Crypto": [
+        'BTC-USD',
+        'ETH-USD',
+        'SOL-USD',
+        'BNB-USD',
+        'XRP-USD',
+        'ADA-USD',
+        'DOGE-USD'
     ]
 }
 
