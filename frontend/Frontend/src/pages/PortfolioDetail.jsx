@@ -12,6 +12,7 @@ function PortfolioDetail() {
   const [searchResults, setSearchResults] = useState([]);
   const [viewMode, setViewMode] = useState("clustering"); // 'clustering' or 'pe'
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [removingStockId, setRemovingStockId] = useState(null);
 
   const [error, setError] = useState(null);
 
@@ -20,11 +21,30 @@ function PortfolioDetail() {
     API.get("sectors/").then((res) => setSectors(res.data));
   }, []);
 
+  const fetchPortfolioAnalysis = () => {
+    API.get("my-portfolio/analysis/")
+      .then((res) => {
+        setPortfolio((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            clusters: res.data?.clusters || [],
+            cluster_plot: res.data?.cluster_plot || null,
+            pe_plot: res.data?.pe_plot || null,
+          };
+        });
+      })
+      .catch((err) => {
+        console.error("Error fetching portfolio analysis:", err);
+      });
+  };
+
   const fetchPortfolio = () => {
     setError(null);
     API.get("my-portfolio/")
       .then((res) => {
         setPortfolio(res.data);
+        fetchPortfolioAnalysis();
       })
       .catch((err) => {
         console.error("Error fetching portfolio:", err);
@@ -89,12 +109,17 @@ function PortfolioDetail() {
       .catch((err) => console.error("Failed to add stock"));
   };
 
-  const removeStock = (stockId) => {
-    API.post("my-portfolio/remove-stock/", { stock_id: stockId })
-      .then((res) => {
-        fetchPortfolio();
-      })
-      .catch((err) => console.error("Failed to remove stock"));
+  const removeStock = async (stockId) => {
+    setRemovingStockId(stockId);
+    try {
+      await API.post("my-portfolio/remove-stock/", { stock_id: stockId });
+      fetchPortfolio();
+    } catch (err) {
+      console.error("Failed to remove stock:", err?.response?.data || err);
+      window.alert(err?.response?.data?.error || "Failed to remove stock from portfolio.");
+    } finally {
+      setRemovingStockId(null);
+    }
   };
 
   if (!portfolio) return (
@@ -274,7 +299,9 @@ function PortfolioDetail() {
                 <tr style={{ textAlign: 'left', borderBottom: '2px solid #f0f0f0', color: '#888', fontSize: '0.8rem' }}>
                   <th style={{ padding: '15px 5px' }}>STOCK</th>
                   <th style={{ padding: '15px 5px' }}>PRICE</th>
+                  <th style={{ padding: '15px 5px' }}>PE RATIO</th>
                   <th style={{ padding: '15px 5px' }}>DISCOUNT</th>
+                  <th style={{ padding: '15px 5px' }}>OPPORTUNITY</th>
                   <th style={{ padding: '15px 5px' }}>LR1</th>
                   <th style={{ padding: '15px 5px' }}>LR1_pred%</th>
                   <th style={{ padding: '15px 5px' }}>TS1</th>
@@ -282,14 +309,12 @@ function PortfolioDetail() {
                   <th style={{ padding: '15px 5px' }}>RNN1</th>
                   <th style={{ padding: '15px 5px' }}>RNN1_pred%</th>
                   <th style={{ padding: '15px 5px' }}>STOCK_UD</th>
-                  <th style={{ padding: '15px 5px' }}>PE RATIO</th>
-                  <th style={{ padding: '15px 5px' }}>OPPORTUNITY</th>
                   <th style={{ padding: '15px 5px' }}>ACTION</th>
                 </tr>
               </thead>
               <tbody>
                 {portfolio.stocks.map((stock) => {
-                  const currencySymbol = stock.currency === 'USD' ? '$' : '₹';
+                  const currencySymbol = stock.currency === "USD" ? "$" : "INR ";
                   const pred = stock.prediction || {};
                   
                   return (
@@ -299,9 +324,22 @@ function PortfolioDetail() {
                         <div style={{ fontSize: '0.7rem', color: '#888' }}>{stock.name}</div>
                       </td>
                       <td style={{ padding: '15px 5px', fontWeight: 'bold' }}>{currencySymbol}{stock.price}</td>
+                      <td style={{ padding: '15px 5px' }}>{stock.pe_ratio}</td>
                       
                       <td style={{ padding: '15px 5px', color: '#888' }}>
                         {stock.discount_pct}%
+                      </td>
+                      <td style={{ padding: '15px 5px' }}>
+                        <span style={{ 
+                          fontSize: '0.7rem', 
+                          padding: '4px 8px', 
+                          borderRadius: '15px',
+                          fontWeight: 'bold',
+                          background: stock.opportunity_level === "Strong" ? "#e6fffa" : stock.opportunity_level === "Moderate" ? "#fffaf0" : "#fff5f5",
+                          color: stock.opportunity_level === "Strong" ? "#2c7a7b" : stock.opportunity_level === "Moderate" ? "#b7791f" : "#c53030"
+                        }}>
+                          {stock.opportunity_level}
+                        </span>
                       </td>
 
                       {/* LR1 Columns */}
@@ -342,19 +380,6 @@ function PortfolioDetail() {
                         </span>
                       </td>
 
-                      <td style={{ padding: '15px 5px' }}>{stock.pe_ratio}</td>
-                      <td style={{ padding: '15px 5px' }}>
-                        <span style={{ 
-                          fontSize: '0.7rem', 
-                          padding: '4px 8px', 
-                          borderRadius: '15px',
-                          fontWeight: 'bold',
-                          background: stock.opportunity_level === "Strong" ? "#e6fffa" : stock.opportunity_level === "Moderate" ? "#fffaf0" : "#fff5f5",
-                          color: stock.opportunity_level === "Strong" ? "#2c7a7b" : stock.opportunity_level === "Moderate" ? "#b7791f" : "#c53030"
-                        }}>
-                          {stock.opportunity_level}
-                        </span>
-                      </td>
                       <td style={{ padding: '15px 5px' }}>
                         <div style={{ display: 'flex', gap: '5px' }}>
                           <button 
@@ -365,9 +390,10 @@ function PortfolioDetail() {
                           </button>
                           <button 
                             onClick={() => removeStock(stock.id)}
+                            disabled={removingStockId === stock.id}
                             style={{ background: 'transparent', color: '#e53e3e', border: '1px solid #e53e3e', padding: '4px 8px', borderRadius: '5px', cursor: 'pointer', fontSize: '0.75rem' }}
                           >
-                            Del
+                            {removingStockId === stock.id ? "Deleting..." : "Del"}
                           </button>
                         </div>
                       </td>
@@ -376,7 +402,7 @@ function PortfolioDetail() {
                 })}
                 {portfolio.stocks.length === 0 && (
                   <tr>
-                    <td colSpan="9" style={{ padding: '60px', textAlign: 'center', color: '#999' }}>
+                    <td colSpan="13" style={{ padding: '60px', textAlign: 'center', color: '#999' }}>
                       Your portfolio is empty. Start by adding stocks above.
                     </td>
                   </tr>

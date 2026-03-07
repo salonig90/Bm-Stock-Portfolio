@@ -235,8 +235,20 @@ def cluster_portfolio_stocks(stocks_list):
             if not symbol:
                 continue
 
-            ticker = yf.Ticker(symbol)
-            hist = ticker.history(period="1y")
+            # Prefer cached 1-year history from DB to avoid per-request network calls.
+            hist = pd.DataFrame()
+            stock_hist = stock.historical_data if hasattr(stock, 'historical_data') else stock.get('historical_data')
+            if stock_hist:
+                hist = pd.DataFrame(stock_hist)
+                if not hist.empty and 'price' in hist.columns:
+                    hist['Close'] = hist['price']
+                if not hist.empty and 'date' in hist.columns:
+                    hist['date'] = pd.to_datetime(hist['date'], errors='coerce')
+                    hist = hist.dropna(subset=['date']).set_index('date').sort_index()
+
+            if hist.empty or 'Close' not in hist.columns:
+                ticker = yf.Ticker(symbol)
+                hist = ticker.history(period="1y")
             if hist.empty:
                 continue
                 

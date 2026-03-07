@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import {
@@ -28,8 +28,10 @@ function StockDetail() {
   const [isAdding, setIsAdding] = useState(false);
   const [error, setError] = useState(null);
   const [historyError, setHistoryError] = useState(null);
+  const hasLoadedInitialRange = useRef(false);
 
   useEffect(() => {
+    hasLoadedInitialRange.current = false;
     setLoading(true);
     setError(null);
     setHistoryError(null);
@@ -60,6 +62,10 @@ function StockDetail() {
   // Separate effect for timeRange changes to update forecast chart only
   useEffect(() => {
     if (!id || loading) return;
+    if (!hasLoadedInitialRange.current) {
+      hasLoadedInitialRange.current = true;
+      return;
+    }
 
     API.get(`stocks/history/${id}/?range=${timeRange}`)
       .then((res) => {
@@ -94,7 +100,7 @@ function StockDetail() {
   const forecastData = prediction?.forecasts?.[selectedModel] || [];
   // For forecasting, show more historical context (e.g., last 50 points)
   const activeHistory = forecastHistory.length > 0 ? forecastHistory.slice(-50) : history.slice(-50);
-  const forecastHorizonLabel = timeRange === "1h" ? "24-Hour" : timeRange === "1D" ? "14-Day" : "12-Week";
+  const forecastHorizonLabel = timeRange === "1h" ? "7-Hour" : timeRange === "1D" ? "7-Day" : "7-Week";
 
   // Format data for Recharts to show actual and predicted lines separately
   const combinedData = [

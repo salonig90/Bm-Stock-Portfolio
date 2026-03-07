@@ -120,33 +120,48 @@ def predict_high_low_logistic(df):
     except:
         return "N/A"
 
+def _normalize_forecast(preds, steps, fallback_price):
+    """Ensure each model returns exactly `steps` points."""
+    normalized = []
+    if isinstance(preds, (list, tuple)):
+        normalized = [float(p) for p in preds if p is not None]
+    if not normalized:
+        normalized = [float(fallback_price)]
+    if len(normalized) < steps:
+        normalized.extend([normalized[-1]] * (steps - len(normalized)))
+    return normalized[:steps]
+
+
 def get_all_predictions(symbol, hist_df, time_range='1W'):
     """Main entry point to get all predictions for the next period."""
     if hist_df is None or hist_df.empty or len(hist_df) < 5:
         return None
-    
-    # Determine forecast steps based on selected range granularity.
-    # 1h -> next 24 hourly points
-    # 1D -> next 14 daily points
-    # 1W -> next 12 weekly points
-    forecast_steps = 12
-    if time_range == '1h':
-        forecast_steps = 24
-    elif time_range == '1D':
-        forecast_steps = 14
+
+    # Train on the latest 1-year slice (or all available if shorter).
+    if isinstance(hist_df.index, pd.DatetimeIndex):
+        cutoff = hist_df.index.max() - pd.Timedelta(days=365)
+        train_df = hist_df[hist_df.index >= cutoff].copy()
+        if train_df.empty:
+            train_df = hist_df.copy()
+    else:
+        train_df = hist_df.tail(252).copy()
+
+    # Use exactly 7 forecast points for all view modes.
+    forecast_steps = 7
     
     # 2. Get predictions FOR next step
-    lr1_next = predict_lr(hist_df)
-    ts1_next = predict_ts(hist_df)
-    rnn1_next = predict_rnn_simple(hist_df)
-    arima1_next = predict_arima(hist_df)
-    stock_ud = predict_high_low_logistic(hist_df)
+    lr1_next = predict_lr(train_df)
+    ts1_next = predict_ts(train_df)
+    rnn1_next = predict_rnn_simple(train_df)
+    arima1_next = predict_arima(train_df)
+    stock_ud = predict_high_low_logistic(train_df)
 
     # 3. Get forecasts for each model
-    lr_forecast = predict_lr_multi(hist_df, forecast_steps)
-    ts_forecast = predict_ts_multi(hist_df, forecast_steps)
-    rnn_forecast = predict_rnn_multi(hist_df, forecast_steps)
-    arima_forecast = predict_arima_multi(hist_df, forecast_steps)
+    fallback_price = train_df['Close'].iloc[-1]
+    lr_forecast = _normalize_forecast(predict_lr_multi(train_df, forecast_steps), forecast_steps, fallback_price)
+    ts_forecast = _normalize_forecast(predict_ts_multi(train_df, forecast_steps), forecast_steps, fallback_price)
+    rnn_forecast = _normalize_forecast(predict_rnn_multi(train_df, forecast_steps), forecast_steps, fallback_price)
+    arima_forecast = _normalize_forecast(predict_arima_multi(train_df, forecast_steps), forecast_steps, fallback_price)
 
     # 4. Helper to format data with correct date/time gaps and add some volatility
     # to avoid perfectly straight lines in the UI.

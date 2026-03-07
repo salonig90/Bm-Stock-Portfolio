@@ -3,6 +3,7 @@ from .views import (
     SectorListAPIView, 
     SectorStocksAPIView, 
     UserPortfolioAPIView,
+    PortfolioAnalysisAPIView,
     StockSearchAPIView,
     StockDetailAPIView,
     StockHistoryAPIView,
@@ -24,6 +25,7 @@ urlpatterns = [
     path("stocks/<str:name>/", SectorStocksAPIView.as_view(), name="sector-stocks"),
     path("gold-silver-analysis/", GoldSilverAnalysisAPIView.as_view(), name="gold-silver-analysis"),
     path("my-portfolio/", UserPortfolioAPIView.as_view(), name="user-portfolio"),
+    path("my-portfolio/analysis/", PortfolioAnalysisAPIView.as_view(), name="user-portfolio-analysis"),
     path("my-portfolio/add-stock/", AddStockToPortfolioAPIView.as_view(), name="portfolio-add-stock"),
     path("my-portfolio/remove-stock/", RemoveStockFromPortfolioAPIView.as_view(), name="portfolio-remove-stock"),
 ]

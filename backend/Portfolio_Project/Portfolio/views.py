@@ -15,36 +15,51 @@ from ML.prediction_models import get_all_predictions
 
 # Custom Sector Mapping from fetch_data.py
 INDUSTRY_SECTORS = {
+
     "Automobile": [
-        'TSLA', 'TM', 'F', 'GM', 'RACE', 'MARUTI.NS', 'TATAMOTORS.NS', 'M&M.NS', 'HEROMOTOCO.NS', 'EICHERMOT.NS',
-        'HMC', 'VOW3.DE', 'BMW.DE', 'MBG.DE', 'STLA', 'RIVN', 'LCID', 'NIO', 'LI', 'XPEV',
-        'ASHOKLEY.NS', 'TVSMOTOR.NS', 'BAJAJ-AUTO.NS', 'BHARATFORG.NS', 'SONACOMS.NS', 'MOTHERSON.NS', 'HYMTF', 'NSANY', 'SUBARY', 'ADR.F'
+        'TSLA', 'TM', 'F', 'GM', 'RACE',
+        'HMC', 'STLA', 'RIVN', 'LCID', 'NIO',
+        'LI', 'XPEV', 'MARUTI.NS', 'TATAMOTORS.NS', 'TMCV.NS', 'M&M.NS',
+        'HEROMOTOCO.NS', 'EICHERMOT.NS', 'ASHOKLEY.NS', 'BAJAJ-AUTO.NS', 'BHARATFORG.NS',
+        'SONACOMS.NS', 'MOTHERSON.NS'
     ],
+
     "Banking": [
-        'JPM', 'BAC', 'GS', 'MS', 'HSBC', 'HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS', 'AXISBANK.NS', 'KOTAKBANK.NS',
-        'WFC', 'C', 'USB', 'PNC', 'TFC', 'RY', 'TD', 'BMO', 'BNS', 'SAN',
-        'BBVA', 'UBS', 'DB', 'BNP.PA', 'PNB.NS', 'BANKBARODA.NS', 'CANBK.NS', 'UNIONBANK.NS', 'IDBI.NS', 'FEDERALBNK.NS'
+        'JPM', 'BAC', 'GS', 'MS', 'WFC',
+        'C', 'USB', 'PNC', 'TFC', 'RY',
+        'TD', 'BMO', 'BNS', 'HSBC', 'SAN',
+        'UBS', 'DB', 'HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS',
+        'AXISBANK.NS', 'KOTAKBANK.NS', 'PNB.NS', 'BANKBARODA.NS', 'CANBK.NS',
+        'UNIONBANK.NS', 'IDBI.NS', 'FEDERALBNK.NS'
     ],
+
     "IT": [
-        'AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA', 'TCS.NS', 'INFY.NS', 'WIPRO.NS', 'HCLTECH.NS', 'TECHM.NS',
-        'AMZN', 'TSM', 'ASML', 'AVGO', 'ORCL', 'CSCO', 'CRM', 'ADBE', 'AMD', 'TXN',
-        'QCOM', 'INTC', 'IBM', 'SAP', 'LTIM.NS', 'MPHASIS.NS', 'COFORGE.NS', 'PERSISTENT.NS', 'LTTS.NS', 'KPITTECH.NS'
+        'AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA',
+        'AMZN', 'TSM', 'ASML', 'AVGO', 'ORCL',
+        'CSCO', 'CRM', 'ADBE', 'AMD', 'TXN',
+        'QCOM', 'INTC', 'IBM', 'SAP', 'TCS.NS',
+        'INFY.NS', 'WIPRO.NS', 'HCLTECH.NS', 'TECHM.NS', 'LTIM.NS',
+        'MPHASIS.NS', 'COFORGE.NS', 'PERSISTENT.NS', 'LTTS.NS', 'KPITTECH.NS'
     ],
+
     "Tata": [
-        'TCS.NS', 'TATAMOTORS.NS', 'TATASTEEL.NS', 'TATAPOWER.NS', 'TITAN.NS', 'TATACONSUM.NS', 'TATACOMM.NS', 'TATAELXSI.NS', 'TATAINVEST.NS', 'TATAMTRDVR.NS',
-        'INDHOTEL.NS', 'TATACHEM.NS', 'TRENT.NS', 'VOLTAS.NS', 'NELCO.NS', 'RALLIS.NS', 'TTML.NS', 'TINPLATE.NS', 'TRF.NS',
-        'TAYO.NS', 'BBL.NS', 'AUTOAXLES.NS', 'BANCOINDIA.NS', 'BOMDYEING.NS', 'ARTEMISMS.NS', 'TATAPIGMENTS.NS', 'TATAPOINT.NS', 'TATACOFFEE.NS', 'TATASTEELBSL.NS'
+        'TCS.NS', 'TATAMOTORS.NS', 'TMCV.NS', 'TATASTEEL.NS', 'TATAPOWER.NS', 'TITAN.NS',
+        'TATACONSUM.NS', 'TATACOMM.NS', 'TATAELXSI.NS', 'INDHOTEL.NS', 'TATACHEM.NS',
+        'TRENT.NS', 'VOLTAS.NS', 'NELCO.NS', 'RALLIS.NS', 'TTML.NS',
+        'TINPLATE.NS'
     ],
+
     "Adani": [
-        'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENSOL.NS', 'ATGL.NS', 'AWL.NS', 'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS',
-        'ADANIWILMAR.NS', 'ADANIENERGY.NS', 'ADANITRANS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIENSOL.NS', 'ATGL.NS', 'AWL.NS',
-        'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS', 'ADANIWILMAR.NS', 'ADANIENERGY.NS', 'ADANITRANS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENT.NS', 'ADANIPORTS.NS'
+        'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENSOL.NS',
+        'ATGL.NS', 'AWL.NS', 'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS'
     ],
+
     "Commodities": [
         'GC=F', 'SI=F'
     ],
+
     "Crypto": [
-        'BTC-USD', 'ETH-USD', 'SOL-USD', 'BNB-USD', 'XRP-USD'
+        'BTC-USD', 'ETH-USD'
     ]
 }
 
@@ -62,14 +77,18 @@ def fetch_realtime_stock(symbol, force_refresh=False):
     import pandas as pd
 
     try:
-        # 1. Determine the correct sector first. 
+        # 1. Check if stock already exists
+        existing_stock = Stocks.objects.filter(symbol=symbol).first()
+        
+        # 2. Determine sector.
+        # For existing DB stocks, keep previous sector if symbol is not in current mapping.
         sector = get_custom_sector(symbol)
+        if not sector and existing_stock:
+            sector = existing_stock.sector
         if not sector:
-            print(f"Skipping {symbol}: Not in defined sectors.")
+            print(f"Skipping {symbol}: Not in defined sectors and no existing DB sector.")
             return None
 
-        # 2. Check if stock already exists
-        existing_stock = Stocks.objects.filter(symbol=symbol).first()
         if existing_stock and not force_refresh:
             # If data is less than 1 day old, it's "fresh enough" for fast loading
             if existing_stock.last_updated and (timezone.now() - existing_stock.last_updated).total_seconds() < 86400:
@@ -285,8 +304,21 @@ class StockHistoryAPIView(APIView):
                             "volume": int(row['Volume'])
                         })
                     
-                    # Get predictions based on this granular data
-                    prediction_data = get_all_predictions(stock.symbol, hist, time_range)
+                    # Train models on last 1 year daily data, but keep displayed history
+                    # based on selected chart range (1h / 1D / 1W).
+                    model_input = None
+                    if stock.historical_data:
+                        model_input = pd.DataFrame(stock.historical_data)
+                        if 'price' in model_input.columns:
+                            model_input['Close'] = model_input['price']
+                        if 'date' in model_input.columns:
+                            model_input['date'] = pd.to_datetime(model_input['date'], errors='coerce')
+                            model_input = model_input.dropna(subset=['date']).set_index('date').sort_index()
+
+                    if model_input is None or model_input.empty or 'Close' not in model_input.columns:
+                        training_hist = t_yf.history(period='1y', interval='1d')
+                        model_input = training_hist if not training_hist.empty else hist
+                    prediction_data = get_all_predictions(stock.symbol, model_input, time_range)
                     
                     # Add simulated PE to history
                     base_pe = stock.pe_ratio if stock.pe_ratio > 0 else 15
@@ -371,25 +403,12 @@ class UserPortfolioAPIView(APIView):
                 stock_dict['prediction'] = stock.prediction_data
                 stocks_data.append(stock_dict)
             
-            # 4. Perform clustering and PE analysis (Only if we have stocks)
-            clustering_result = None
-            pe_plot = None
-            if all_stocks:
-                clustering_result = cluster_portfolio_stocks(all_stocks)
-                pe_plot = get_portfolio_pe_analysis(all_stocks)
-            
-            # 5. Build final response
+            # 4. Build fast response (analysis is loaded separately)
             portfolio_data = PortfolioSerializer(portfolio).data
             portfolio_data['stocks'] = stocks_data
-            
-            if isinstance(clustering_result, dict):
-                portfolio_data['clusters'] = clustering_result.get('clusters', [])
-                portfolio_data['cluster_plot'] = clustering_result.get('plot', None)
-            else:
-                portfolio_data['clusters'] = []
-                portfolio_data['cluster_plot'] = None
-            
-            portfolio_data['pe_plot'] = pe_plot
+            portfolio_data['clusters'] = []
+            portfolio_data['cluster_plot'] = None
+            portfolio_data['pe_plot'] = None
             
             return Response(portfolio_data)
         except Exception as e:
@@ -397,29 +416,69 @@ class UserPortfolioAPIView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class PortfolioAnalysisAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            portfolio, _ = Portfolio.objects.get_or_create(
+                staff=request.user,
+                defaults={"portfolio_name": f"{request.user.name}'s Portfolio"}
+            )
+            all_stocks = list(portfolio.stocks.all())
+
+            clustering_result = None
+            pe_plot = None
+            if all_stocks:
+                clustering_result = cluster_portfolio_stocks(all_stocks)
+                pe_plot = get_portfolio_pe_analysis(all_stocks)
+
+            analysis_data = {
+                "clusters": [],
+                "cluster_plot": None,
+                "pe_plot": pe_plot
+            }
+            if isinstance(clustering_result, dict):
+                analysis_data["clusters"] = clustering_result.get("clusters", [])
+                analysis_data["cluster_plot"] = clustering_result.get("plot", None)
+
+            return Response(analysis_data)
+        except Exception as e:
+            print(f"Portfolio Analysis Error: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class RefreshStocksAPIView(APIView):
-    """View to trigger a manual refresh of all stocks in the database/portfolio."""
+    """View to trigger a manual refresh of all stocks currently present in the database."""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         try:
-            # 1. Get the portfolio for the logged-in user
-            portfolio, _ = Portfolio.objects.get_or_create(staff=request.user)
-            stocks_to_refresh = portfolio.stocks.all()
+            stocks_to_refresh = Stocks.objects.all().order_by("symbol")
 
             if not stocks_to_refresh.exists():
-                return Response({"message": "No stocks in your portfolio to refresh."}, status=status.HTTP_200_OK)
+                return Response({"message": "No stocks available in database to refresh."}, status=status.HTTP_200_OK)
 
             results = []
+            failed = []
             for stock in stocks_to_refresh:
                 # Force refresh from yfinance and store in DB
                 updated_stock = fetch_realtime_stock(stock.symbol, force_refresh=True)
                 if updated_stock:
                     results.append(stock.symbol)
+                else:
+                    failed.append(stock.symbol)
             
             return Response({
-                "message": f"Refresh complete: processed {len(results)} portfolio stocks from yfinance.",
-                "refreshed_stocks": results
+                "message": (
+                    f"Refresh complete: refreshed {len(results)} of {stocks_to_refresh.count()} "
+                    "stocks present in database."
+                ),
+                "total_requested": stocks_to_refresh.count(),
+                "refreshed_count": len(results),
+                "failed_count": len(failed),
+                "refreshed_stocks": results,
+                "failed_stocks": failed
             })
         except Exception as e:
             print(f"Refresh Error: {e}")
@@ -453,17 +512,21 @@ class RemoveStockFromPortfolioAPIView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        stock_id = request.data.get("stock_id")
+        stock_id = request.data.get("stock_id") or request.data.get("id")
         if not stock_id:
             return Response({"error": "Stock ID is required"}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            stock = Stocks.objects.get(pk=stock_id)
+            portfolio, _ = Portfolio.objects.get_or_create(
+                staff=request.user,
+                defaults={"portfolio_name": f"{request.user.name}'s Portfolio"}
+            )
+            stock = Stocks.objects.get(pk=stock_id, portfolio=portfolio)
             stock.portfolio = None
             stock.save()
             return Response({"message": f"Removed {stock.name} from portfolio"})
         except Stocks.DoesNotExist:
-            return Response({"error": "Stock not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Stock not found in your portfolio"}, status=status.HTTP_404_NOT_FOUND)
 
 class StockComparisonAPIView(APIView):
     permission_classes = [permissions.AllowAny]

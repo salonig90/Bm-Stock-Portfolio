@@ -182,20 +182,17 @@ INDUSTRY_SECTORS = {
     "Automobile": [
         'TSLA', 'TM', 'F', 'GM', 'RACE',
         'HMC', 'STLA', 'RIVN', 'LCID', 'NIO',
-        'LI', 'XPEV',
-        'MARUTI.NS', 'TATAMOTORS.NS', 'M&M.NS', 'HEROMOTOCO.NS', 'EICHERMOT.NS',
-        'ASHOKLEY.NS', 'TVSMOTOR.NS', 'BAJAJ-AUTO.NS', 'BHARATFORG.NS',
+        'LI', 'XPEV', 'MARUTI.NS', 'TATAMOTORS.NS', 'TMCV.NS', 'M&M.NS',
+        'HEROMOTOCO.NS', 'EICHERMOT.NS', 'ASHOKLEY.NS', 'BAJAJ-AUTO.NS', 'BHARATFORG.NS',
         'SONACOMS.NS', 'MOTHERSON.NS'
     ],
 
     "Banking": [
         'JPM', 'BAC', 'GS', 'MS', 'WFC',
-        'C', 'USB', 'PNC', 'TFC',
-        'RY', 'TD', 'BMO', 'BNS',
-        'HSBC', 'SAN', 'UBS', 'DB',
-        'HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS',
-        'AXISBANK.NS', 'KOTAKBANK.NS',
-        'PNB.NS', 'BANKBARODA.NS', 'CANBK.NS',
+        'C', 'USB', 'PNC', 'TFC', 'RY',
+        'TD', 'BMO', 'BNS', 'HSBC', 'SAN',
+        'UBS', 'DB', 'HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS',
+        'AXISBANK.NS', 'KOTAKBANK.NS', 'PNB.NS', 'BANKBARODA.NS', 'CANBK.NS',
         'UNIONBANK.NS', 'IDBI.NS', 'FEDERALBNK.NS'
     ],
 
@@ -203,51 +200,29 @@ INDUSTRY_SECTORS = {
         'AAPL', 'MSFT', 'GOOGL', 'META', 'NVDA',
         'AMZN', 'TSM', 'ASML', 'AVGO', 'ORCL',
         'CSCO', 'CRM', 'ADBE', 'AMD', 'TXN',
-        'QCOM', 'INTC', 'IBM', 'SAP',
-        'TCS.NS', 'INFY.NS', 'WIPRO.NS',
-        'HCLTECH.NS', 'TECHM.NS',
-        'LTIM.NS', 'MPHASIS.NS', 'COFORGE.NS',
-        'PERSISTENT.NS', 'LTTS.NS', 'KPITTECH.NS'
+        'QCOM', 'INTC', 'IBM', 'SAP', 'TCS.NS',
+        'INFY.NS', 'WIPRO.NS', 'HCLTECH.NS', 'TECHM.NS', 'LTIM.NS',
+        'MPHASIS.NS', 'COFORGE.NS', 'PERSISTENT.NS', 'LTTS.NS', 'KPITTECH.NS'
     ],
 
     "Tata": [
-        'TCS.NS', 'TMCV.NS', 'TATASTEEL.NS',
-        'TATAPOWER.NS', 'TITAN.NS', 'TATACONSUM.NS',
-        'TATACOMM.NS', 'TATAELXSI.NS',
-        'INDHOTEL.NS', 'TATACHEM.NS',
-        'TRENT.NS', 'VOLTAS.NS',
-        'NELCO.NS', 'RALLIS.NS',
-        'TTML.NS', 'TINPLATE.NS'
+        'TCS.NS', 'TATAMOTORS.NS', 'TMCV.NS', 'TATASTEEL.NS', 'TATAPOWER.NS', 'TITAN.NS',
+        'TATACONSUM.NS', 'TATACOMM.NS', 'TATAELXSI.NS', 'INDHOTEL.NS', 'TATACHEM.NS',
+        'TRENT.NS', 'VOLTAS.NS', 'NELCO.NS', 'RALLIS.NS', 'TTML.NS',
+        'TINPLATE.NS'
     ],
 
     "Adani": [
-        'ADANIENT.NS',
-        'ADANIPORTS.NS',
-        'ADANIGREEN.NS',
-        'ADANIPOWER.NS',
-        'ADANIENSOL.NS',
-        'ATGL.NS',
-        'AWL.NS',
-        'ACC.NS',
-        'AMBUJACEM.NS',
-        'NDTV.NS'
+        'ADANIENT.NS', 'ADANIPORTS.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ADANIENSOL.NS',
+        'ATGL.NS', 'AWL.NS', 'ACC.NS', 'AMBUJACEM.NS', 'NDTV.NS'
     ],
 
     "Commodities": [
-        'GC=F',   # Gold Futures
-        'SI=F',   # Silver Futures
-        'CL=F',   # Crude Oil
-        'NG=F'    # Natural Gas
+        'GC=F', 'SI=F'
     ],
 
     "Crypto": [
-        'BTC-USD',
-        'ETH-USD',
-        'SOL-USD',
-        'BNB-USD',
-        'XRP-USD',
-        'ADA-USD',
-        'DOGE-USD'
+        'BTC-USD', 'ETH-USD'
     ]
 }
 
