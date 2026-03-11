@@ -425,24 +425,23 @@ def run_gold_silver_analysis():
     silver_ticker = yf.Ticker("SI=F")
     
     try:
-        # Try to get real-time price from fast interval
-        g_live_df = gold_ticker.history(period="1d", interval="1m")
-        s_live_df = silver_ticker.history(period="1d", interval="1m")
+        # Optimization: Use fastinfo for current price instead of history(1m) which is slow
+        gold_live = round(float(gold_ticker.fast_info.get('lastPrice', 0)), 2)
+        silver_live = round(float(silver_ticker.fast_info.get('lastPrice', 0)), 2)
         
-        gold_live = g_live_df['Close'].iloc[-1] if not g_live_df.empty else 0
-        silver_live = s_live_df['Close'].iloc[-1] if not s_live_df.empty else 0
-        
-        # Fallback to info if live fetch failed
-        if gold_live == 0:
-            gold_live = gold_ticker.info.get('currentPrice') or gold_ticker.info.get('regularMarketPrice') or 0
-        if silver_live == 0:
-            silver_live = silver_ticker.info.get('currentPrice') or silver_ticker.info.get('regularMarketPrice') or 0
+        # Fallback to history if fast_info fails
+        if gold_live == 0 or silver_live == 0:
+            g_live_df = gold_ticker.history(period="1d", interval="1m")
+            s_live_df = silver_ticker.history(period="1d", interval="1m")
+            gold_live = g_live_df['Close'].iloc[-1] if not g_live_df.empty else 0
+            silver_live = s_live_df['Close'].iloc[-1] if not s_live_df.empty else 0
     except Exception as e:
         print(f"Live price fetch error: {e}")
         gold_live = 0
         silver_live = 0
 
     # 2. Fetch historical data for trends and correlation
+    # Use cached history from yfinance if available
     gold_hist = gold_ticker.history(start=start_date, end=today)
     silver_hist = silver_ticker.history(start=start_date, end=today)
     

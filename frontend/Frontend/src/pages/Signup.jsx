@@ -19,7 +19,7 @@ function Signup() {
   const handleSubmit = (e) => {
     e.preventDefault();
     API.post("signup/", formData)
-      .then((res) => {
+      .then(() => {
         alert("Account created successfully!");
         navigate("/login");
       })

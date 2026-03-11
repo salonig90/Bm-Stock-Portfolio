@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../services/api";
 import {
@@ -75,6 +75,7 @@ function StockDetail() {
       .catch((err) => {
         console.error("Error fetching range-specific history:", err);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, timeRange]);
 
   const handleAddToPortfolio = async () => {
@@ -337,7 +338,7 @@ function StockDetail() {
                   />
                   <Tooltip 
                     contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}
-                    formatter={(value, name, entry) => [
+                    formatter={(value, name) => [
                       `${currencySymbol}${value}`,
                       name === 'actual' ? 'Actual Price' : `${selectedModel.toUpperCase()} Prediction`
                     ]}
@@ -422,3 +423,4 @@ function StockDetail() {
 }
 
 export default StockDetail;
+

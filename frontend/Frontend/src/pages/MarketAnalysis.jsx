@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import API from "../services/api";
 import {
   LineChart,
@@ -18,14 +18,11 @@ function GoldSilverAnalysis() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchAnalysis();
-  }, []);
-
-  const fetchAnalysis = () => {
+  const fetchAnalysis = (force = false) => {
     setLoading(true);
     setError(null);
-    API.get("gold-silver-analysis/", { timeout: 30000 }) 
+    const url = force ? "gold-silver-analysis/?force_refresh=true" : "gold-silver-analysis/";
+    API.get(url, { timeout: 30000 }) 
       .then((res) => {
         setAnalysis(res.data);
         setLoading(false);
@@ -37,6 +34,11 @@ function GoldSilverAnalysis() {
         setLoading(false);
       });
   };
+
+  useEffect(() => {
+    fetchAnalysis(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) return (
     <div style={{ padding: '60px', textAlign: 'center' }}>
@@ -71,7 +73,7 @@ function GoldSilverAnalysis() {
             </p>
           </div>
           <button 
-            onClick={fetchAnalysis}
+            onClick={() => fetchAnalysis(true)}
             style={{ background: '#f0f2f5', border: 'none', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}
           >
             🔄 Refresh Live Prices

@@ -11,7 +11,9 @@ from .views import (
     RemoveStockFromPortfolioAPIView,
     StockComparisonAPIView,
     GoldSilverAnalysisAPIView,
-    RefreshStocksAPIView
+    RefreshStocksAPIView,
+    MarketNewsAPIView,
+    TopGainersAPIView
 )
 
 urlpatterns = [
@@ -28,4 +30,6 @@ urlpatterns = [
     path("my-portfolio/analysis/", PortfolioAnalysisAPIView.as_view(), name="user-portfolio-analysis"),
     path("my-portfolio/add-stock/", AddStockToPortfolioAPIView.as_view(), name="portfolio-add-stock"),
     path("my-portfolio/remove-stock/", RemoveStockFromPortfolioAPIView.as_view(), name="portfolio-remove-stock"),
+    path("market/news/", MarketNewsAPIView.as_view(), name="market-news"),
+    path("market/top-gainers/", TopGainersAPIView.as_view(), name="top-gainers"),
 ]

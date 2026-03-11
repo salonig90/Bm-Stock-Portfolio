@@ -9,7 +9,7 @@ function Sector() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
+    // setLoading(true); // Handled by initial state or logic
     API.get(`stocks/${name}/`)
       .then((res) => {
         setStocks(res.data);
@@ -33,7 +33,7 @@ function Sector() {
       .then((res) => {
         alert(res.data.message);
       })
-      .catch((err) => {
+      .catch(() => {
         alert("Failed to add stock. Make sure you are logged in.");
       });
   };

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import API from "../services/api";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function PortfolioDetail() {
   const navigate = useNavigate();
@@ -11,17 +11,18 @@ function PortfolioDetail() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [viewMode, setViewMode] = useState("clustering"); // 'clustering' or 'pe'
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [removingStockId, setRemovingStockId] = useState(null);
-
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchPortfolio();
     API.get("sectors/").then((res) => setSectors(res.data));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchPortfolioAnalysis = () => {
+    setLoadingAnalysis(true);
     API.get("my-portfolio/analysis/")
       .then((res) => {
         setPortfolio((prev) => {
@@ -36,6 +37,9 @@ function PortfolioDetail() {
       })
       .catch((err) => {
         console.error("Error fetching portfolio analysis:", err);
+      })
+      .finally(() => {
+        setLoadingAnalysis(false);
       });
   };
 
@@ -101,12 +105,12 @@ function PortfolioDetail() {
 
   const addStock = (stockId) => {
     API.post("my-portfolio/add-stock/", { stock_id: stockId })
-      .then((res) => {
+      .then(() => {
         fetchPortfolio();
         setSearchTerm("");
         setSearchResults([]);
       })
-      .catch((err) => console.error("Failed to add stock"));
+      .catch(() => console.error("Failed to add stock"));
   };
 
   const removeStock = async (stockId) => {
@@ -243,7 +247,22 @@ function PortfolioDetail() {
             </div>
 
             <div style={{ textAlign: 'center' }}>
-              {viewMode === "clustering" ? (
+              {loadingAnalysis ? (
+                <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div className="spinner" style={{ 
+                    border: '4px solid rgba(0, 210, 255, 0.1)', 
+                    borderTop: '4px solid #00d2ff', 
+                    borderRadius: '50%', 
+                    width: '40px', 
+                    height: '40px', 
+                    animation: 'spin 1s linear infinite' 
+                  }}></div>
+                  <p style={{ marginTop: '20px', color: '#64748b', fontWeight: '600' }}>AI is analyzing your portfolio dynamics...</p>
+                  <style>{`
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                  `}</style>
+                </div>
+              ) : viewMode === "clustering" ? (
                 <div>
                   {portfolio.cluster_plot ? (
                     <>
@@ -267,7 +286,7 @@ function PortfolioDetail() {
                       </div>
                     </>
                   ) : (
-                    <p>Not enough data for clustering. Add at least 2 stocks.</p>
+                    <p style={{ color: '#64748b', padding: '40px' }}>Not enough data for clustering. Add at least 2 stocks.</p>
                   )}
                 </div>
               ) : (
@@ -279,7 +298,7 @@ function PortfolioDetail() {
                       style={{ maxWidth: '100%', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                     />
                   ) : (
-                    <p>PE data not available for your stocks.</p>
+                    <p style={{ color: '#64748b', padding: '40px' }}>PE data not available for your stocks.</p>
                   )}
                 </div>
               )}
