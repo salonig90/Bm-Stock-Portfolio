@@ -58,6 +58,10 @@ function Navbar({ username, onLogout }) {
       from { width: 0; opacity: 0; }
       to { width: 100%; opacity: 1; }
     }
+    @keyframes spin-refresh {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
   `;
 
   const handleRefresh = async () => {
@@ -169,8 +173,8 @@ function Navbar({ username, onLogout }) {
           Stock<span style={{ color: '#00d2ff' }}>Whiz</span>
         </Link>
 
-        {/* Search Bar */}
-        <div ref={searchRef} style={{ display: 'flex', gap: '10px', alignItems: 'center', position: 'relative' }}>
+        {/* Search Bar & Refresh */}
+        <div ref={searchRef} style={{ display: 'flex', gap: '15px', alignItems: 'center', position: 'relative' }}>
           <form onSubmit={handleSearch} style={{ position: 'relative' }}>
             <input
               type="text"
@@ -213,6 +217,48 @@ function Navbar({ username, onLogout }) {
               {isSearching ? "..." : "🔍"}
             </button>
           </form>
+
+          {/* Unique Creative Refresh Button */}
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh Market Data"
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              fontSize: '1.2rem',
+              color: '#00d2ff',
+              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(0, 210, 255, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(0, 210, 255, 0.3)';
+              e.currentTarget.style.transform = 'scale(1.1)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            <span style={{ 
+              display: 'inline-block', 
+              animation: isRefreshing ? 'spin-refresh 1s linear infinite' : 'none',
+              filter: isRefreshing ? 'drop-shadow(0 0 5px #00d2ff)' : 'none'
+            }}>
+              🔄
+            </span>
+          </button>
 
           {/* Suggestions Dropdown */}
           {showSuggestions && searchQuery.trim() && (
@@ -265,30 +311,6 @@ function Navbar({ username, onLogout }) {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-        <button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          style={{
-            background: 'linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%)',
-            color: 'white',
-            border: 'none',
-            padding: '8px 20px',
-            borderRadius: '10px',
-            cursor: 'pointer',
-            fontSize: '0.9rem',
-            fontWeight: '700',
-            transition: 'all 0.3s ease',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 15px rgba(0, 210, 255, 0.2)'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-        >
-          {isRefreshing ? "..." : "🔄 Refresh"}
-        </button>
-
         <div style={{ display: 'flex', gap: '25px', fontSize: '0.9rem', fontWeight: '600' }}>
           <Link to="/" style={linkStyle("/")} onMouseOver={(e) => !isActive("/") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/") && (e.target.style.color = '#94a3b8')}>
             Home

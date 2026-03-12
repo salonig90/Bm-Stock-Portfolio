@@ -207,105 +207,6 @@ function PortfolioDetail() {
           </div>
         </div>
 
-        {/* Portfolio Analysis Section */}
-        {portfolio.stocks.length > 0 && (
-          <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#333' }}>Portfolio AI Analysis</h3>
-              <div style={{ display: 'flex', background: '#f0f2f5', padding: '5px', borderRadius: '10px' }}>
-                <button 
-                  onClick={() => setViewMode("clustering")}
-                  style={{ 
-                    padding: '8px 20px', 
-                    borderRadius: '8px', 
-                    border: 'none', 
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    background: viewMode === "clustering" ? "#00d2ff" : "transparent",
-                    color: viewMode === "clustering" ? "white" : "#666",
-                    transition: 'all 0.3s'
-                  }}
-                >
-                  K-Means Clustering
-                </button>
-                <button 
-                  onClick={() => setViewMode("pe")}
-                  style={{ 
-                    padding: '8px 20px', 
-                    borderRadius: '8px', 
-                    border: 'none', 
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    background: viewMode === "pe" ? "#00d2ff" : "transparent",
-                    color: viewMode === "pe" ? "white" : "#666",
-                    transition: 'all 0.3s'
-                  }}
-                >
-                  PE Ratio Analysis
-                </button>
-              </div>
-            </div>
-
-            <div style={{ textAlign: 'center' }}>
-              {loadingAnalysis ? (
-                <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div className="spinner" style={{ 
-                    border: '4px solid rgba(0, 210, 255, 0.1)', 
-                    borderTop: '4px solid #00d2ff', 
-                    borderRadius: '50%', 
-                    width: '40px', 
-                    height: '40px', 
-                    animation: 'spin 1s linear infinite' 
-                  }}></div>
-                  <p style={{ marginTop: '20px', color: '#64748b', fontWeight: '600' }}>AI is analyzing your portfolio dynamics...</p>
-                  <style>{`
-                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-                  `}</style>
-                </div>
-              ) : viewMode === "clustering" ? (
-                <div>
-                  {portfolio.cluster_plot ? (
-                    <>
-                      <img 
-                        src={`data:image/png;base64,${portfolio.cluster_plot}`} 
-                        alt="K-Means Clustering" 
-                        style={{ maxWidth: '100%', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      />
-                      <div style={{ marginTop: '25px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', textAlign: 'left' }}>
-                        {portfolio.clusters.map((cluster, idx) => (
-                          <div key={idx} style={{ padding: '20px', background: '#f8faff', borderRadius: '12px', border: '1px solid #e1e8f0' }}>
-                            <h4 style={{ margin: '0 0 10px 0', color: '#2c5282' }}>{cluster.label}</h4>
-                            <p style={{ fontSize: '0.85rem', color: '#4a5568', marginBottom: '15px' }}>{cluster.info}</p>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                              {cluster.stocks.map(s => (
-                                <span key={s.symbol} style={{ padding: '3px 8px', background: 'white', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', border: '1px solid #cbd5e0' }}>{s.symbol}</span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <p style={{ color: '#64748b', padding: '40px' }}>Not enough data for clustering. Add at least 2 stocks.</p>
-                  )}
-                </div>
-              ) : (
-                <div>
-                  {portfolio.pe_plot ? (
-                    <img 
-                      src={`data:image/png;base64,${portfolio.pe_plot}`} 
-                      alt="PE Ratio Analysis" 
-                      style={{ maxWidth: '100%', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    />
-                  ) : (
-                    <p style={{ color: '#64748b', padding: '40px' }}>PE data not available for your stocks.</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Stock Data List */}
         <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -430,6 +331,105 @@ function PortfolioDetail() {
             </table>
           </div>
         </div>
+
+        {/* Portfolio Analysis Section */}
+        {portfolio.stocks.length > 0 && (
+          <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#333' }}>Portfolio AI Analysis</h3>
+              <div style={{ display: 'flex', background: '#f0f2f5', padding: '5px', borderRadius: '10px' }}>
+                <button 
+                  onClick={() => setViewMode("clustering")}
+                  style={{ 
+                    padding: '8px 20px', 
+                    borderRadius: '8px', 
+                    border: 'none', 
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    background: viewMode === "clustering" ? "#00d2ff" : "transparent",
+                    color: viewMode === "clustering" ? "white" : "#666",
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  K-Means Clustering
+                </button>
+                <button 
+                  onClick={() => setViewMode("pe")}
+                  style={{ 
+                    padding: '8px 20px', 
+                    borderRadius: '8px', 
+                    border: 'none', 
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    background: viewMode === "pe" ? "#00d2ff" : "transparent",
+                    color: viewMode === "pe" ? "white" : "#666",
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  PE Ratio Analysis
+                </button>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              {loadingAnalysis ? (
+                <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div className="spinner" style={{ 
+                    border: '4px solid rgba(0, 210, 255, 0.1)', 
+                    borderTop: '4px solid #00d2ff', 
+                    borderRadius: '50%', 
+                    width: '40px', 
+                    height: '40px', 
+                    animation: 'spin 1s linear infinite' 
+                  }}></div>
+                  <p style={{ marginTop: '20px', color: '#64748b', fontWeight: '600' }}>AI is analyzing your portfolio dynamics...</p>
+                  <style>{`
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                  `}</style>
+                </div>
+              ) : viewMode === "clustering" ? (
+                <div>
+                  {portfolio.cluster_plot ? (
+                    <>
+                      <img 
+                        src={`data:image/png;base64,${portfolio.cluster_plot}`} 
+                        alt="K-Means Clustering" 
+                        style={{ maxWidth: '100%', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      />
+                      <div style={{ marginTop: '25px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', textAlign: 'left' }}>
+                        {portfolio.clusters.map((cluster, idx) => (
+                          <div key={idx} style={{ padding: '20px', background: '#f8faff', borderRadius: '12px', border: '1px solid #e1e8f0' }}>
+                            <h4 style={{ margin: '0 0 10px 0', color: '#2c5282' }}>{cluster.label}</h4>
+                            <p style={{ fontSize: '0.85rem', color: '#4a5568', marginBottom: '15px' }}>{cluster.info}</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                              {cluster.stocks.map(s => (
+                                <span key={s.symbol} style={{ padding: '3px 8px', background: 'white', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', border: '1px solid #cbd5e0' }}>{s.symbol}</span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p style={{ color: '#64748b', padding: '40px' }}>Not enough data for clustering. Add at least 2 stocks.</p>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  {portfolio.pe_plot ? (
+                    <img 
+                      src={`data:image/png;base64,${portfolio.pe_plot}`} 
+                      alt="PE Ratio Analysis" 
+                      style={{ maxWidth: '100%', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    />
+                  ) : (
+                    <p style={{ color: '#64748b', padding: '40px' }}>PE data not available for your stocks.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
