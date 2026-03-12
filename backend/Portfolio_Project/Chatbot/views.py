@@ -34,8 +34,8 @@ class ChatBotView(APIView):
             except:
                 pass
 
-        # Use your Gemini API Key here (Paste it between the quotes)
-        api_key = "AIzaSyAKmdOZJv_6Upt0Alay5_vvxf5vv04PPpY"
+        # Try to get Gemini API key from environment variable first
+        api_key = os.getenv("GEMINI_API_KEY", "AIzaSyAKmdOZJv_6Upt0Alay5_vvxf5vv04PPpY")
         
         if not api_key or api_key == "PLACEHOLDER_KEY_HERE":
             return Response({"reply": "AI Assistant is currently offline. Please provide your Gemini API key in backend/Portfolio_Project/Chatbot/views.py."}, status=status.HTTP_200_OK)

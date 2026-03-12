@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://20.198.9.109:8000/api/",
+  baseURL: `http://${window.location.hostname}:8000/api/`,
 });
 
 const getNormalizedToken = () => {
