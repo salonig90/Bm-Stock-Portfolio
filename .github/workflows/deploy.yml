@@ -1,0 +1,35 @@
+name: Django Auto Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VM
+        uses: appleboy/ssh-action@v1.0.3
+
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          script: |
+            cd /home/salonig/Bm-Stock-Portfolio
+            git pull origin main
+
+            source backend/Portfolio_Project/venv/bin/activate
+            cd backend/Portfolio_Project
+
+            pip install -r requirements.txt
+
+            python manage.py migrate
+
+            python manage.py collectstatic --noinput
+
+            sudo systemctl restart gunicorn
+            sudo systemctl restart nginx
