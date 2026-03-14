@@ -61,14 +61,14 @@ function GoldSilverAnalysis() {
   );
 
   return (
-    <div style={{ padding: '40px', background: '#f8f9fa', minHeight: '100vh' }}>
+    <div className="page-container" style={{ padding: '20px', background: '#f8f9fa', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ background: 'white', padding: '30px', borderRadius: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: 'white', padding: '25px', borderRadius: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: '800' }}>
+            <h1 className="section-title" style={{ margin: 0, fontSize: '2.2rem', fontWeight: '800', textAlign: 'left' }}>
               Gold & Silver <span style={{ color: '#00d2ff' }}>Analysis</span>
             </h1>
-            <p style={{ color: '#666', marginTop: '10px' }}>
+            <p style={{ color: '#666', marginTop: '10px', fontSize: '0.9rem' }}>
               Real-time prices and Linear Regression analysis.
             </p>
           </div>
@@ -81,14 +81,14 @@ function GoldSilverAnalysis() {
         </div>
 
         {/* Live Prices Section */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginBottom: '30px' }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', borderTop: '5px solid gold' }}>
-            <div style={{ fontSize: '1rem', color: '#888', fontWeight: 'bold', marginBottom: '10px' }}>LIVE GOLD PRICE (USD)</div>
-            <div style={{ fontSize: '3rem', fontWeight: '900', color: '#b8860b' }}>${analysis.live_prices.gold}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+          <div style={{ background: 'white', padding: '25px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', borderTop: '5px solid gold' }}>
+            <div style={{ fontSize: '0.9rem', color: '#888', fontWeight: 'bold', marginBottom: '10px' }}>LIVE GOLD PRICE (USD)</div>
+            <div style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: '900', color: '#b8860b' }}>${analysis.live_prices.gold}</div>
           </div>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', borderTop: '5px solid silver' }}>
-            <div style={{ fontSize: '1rem', color: '#888', fontWeight: 'bold', marginBottom: '10px' }}>LIVE SILVER PRICE (USD)</div>
-            <div style={{ fontSize: '3rem', fontWeight: '900', color: '#707070' }}>${analysis.live_prices.silver}</div>
+          <div style={{ background: 'white', padding: '25px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', borderTop: '5px solid silver' }}>
+            <div style={{ fontSize: '0.9rem', color: '#888', fontWeight: 'bold', marginBottom: '10px' }}>LIVE SILVER PRICE (USD)</div>
+            <div style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: '900', color: '#707070' }}>${analysis.live_prices.silver}</div>
           </div>
         </div>
 

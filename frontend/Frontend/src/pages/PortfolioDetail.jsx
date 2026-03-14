@@ -140,18 +140,18 @@ function PortfolioDetail() {
   );
 
   return (
-    <div style={{ padding: '40px', background: '#f8f9fa', minHeight: '100vh' }}>
+    <div className="page-container" style={{ padding: '20px', background: '#f8f9fa', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header / Add Stock Section (Replacing Admin Portfolio Box) */}
-        <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <h2 style={{ margin: '0 0 5px 0', fontSize: '2rem', color: '#1a1a1a' }}>{portfolio.portfolio_name}</h2>
-              <p style={{ color: '#666', margin: 0 }}>Add new stocks to your portfolio below.</p>
+        <div style={{ background: 'white', padding: '25px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
+            <div style={{ minWidth: '250px' }}>
+              <h2 style={{ margin: '0 0 5px 0', fontSize: '1.8rem', color: '#1a1a1a' }}>{portfolio.portfolio_name}</h2>
+              <p style={{ color: '#666', margin: 0, fontSize: '0.9rem' }}>Add new stocks to your portfolio below.</p>
             </div>
             
-            <div style={{ display: 'flex', gap: '20px', width: '60%' }}>
-              <div style={{ flex: 1, position: 'relative' }}>
+            <div style={{ display: 'flex', gap: '15px', flex: '1 1 500px', flexWrap: 'wrap' }}>
+              <div style={{ flex: '1 1 250px', position: 'relative' }}>
                 <input 
                   type="text" 
                   placeholder="Search by Name/Symbol..." 
@@ -178,7 +178,7 @@ function PortfolioDetail() {
                 )}
               </div>
 
-              <div style={{ width: '250px' }}>
+              <div style={{ flex: '1 1 200px', minWidth: '200px' }}>
                 <select 
                   value={selectedSector} 
                   onChange={handleSectorChange}
@@ -188,7 +188,7 @@ function PortfolioDetail() {
                   {sectors.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
                 {stocksInSector.length > 0 && (
-                  <div style={{ position: 'absolute', width: '250px', zIndex: 10, marginTop: '5px', maxHeight: '300px', overflowY: 'auto', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', background: '#fff' }}>
+                  <div style={{ position: 'absolute', width: '250px', right: 0, zIndex: 10, marginTop: '5px', maxHeight: '300px', overflowY: 'auto', border: '1px solid #eee', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', background: '#fff' }}>
                     {stocksInSector.map(stock => (
                       <div key={stock.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px', borderBottom: '1px solid #eee' }}>
                         <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{stock.symbol}</span>
@@ -335,9 +335,9 @@ function PortfolioDetail() {
         {/* Portfolio Analysis Section */}
         {portfolio.stocks.length > 0 && (
           <div style={{ background: 'white', padding: '30px', borderRadius: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '30px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', flexWrap: 'wrap', gap: '20px' }}>
               <h3 style={{ margin: 0, fontSize: '1.5rem', color: '#333' }}>Portfolio AI Analysis</h3>
-              <div style={{ display: 'flex', background: '#f0f2f5', padding: '5px', borderRadius: '10px' }}>
+              <div style={{ display: 'flex', background: '#f0f2f5', padding: '5px', borderRadius: '10px', flexWrap: 'wrap' }}>
                 <button 
                   onClick={() => setViewMode("clustering")}
                   style={{ 
@@ -396,7 +396,7 @@ function PortfolioDetail() {
                         alt="K-Means Clustering" 
                         style={{ maxWidth: '100%', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                       />
-                      <div style={{ marginTop: '25px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', textAlign: 'left' }}>
+                      <div style={{ marginTop: '25px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', textAlign: 'left' }}>
                         {portfolio.clusters.map((cluster, idx) => (
                           <div key={idx} style={{ padding: '20px', background: '#f8faff', borderRadius: '12px', border: '1px solid #e1e8f0' }}>
                             <h4 style={{ margin: '0 0 10px 0', color: '#2c5282' }}>{cluster.label}</h4>

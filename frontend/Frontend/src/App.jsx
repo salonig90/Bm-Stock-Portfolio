@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import API from "./services/api";
 import ChatBot from "./components/ChatBot";
+import "./components/Navbar.css";
 
 function Navbar({ username, onLogout }) {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ function Navbar({ username, onLogout }) {
   const [isSearching, setIsSearching] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchRef = useRef(null);
 
   const isActive = (path) => {
@@ -147,35 +149,15 @@ function Navbar({ username, onLogout }) {
   };
 
   return (
-    <nav style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '10px 40px',
-      background: 'rgba(10, 10, 12, 0.95)',
-      color: 'white',
-      borderBottom: '1px solid rgba(255,255,255,0.05)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 1000,
-      backdropFilter: 'blur(20px)',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
-    }}>
-      <style>{navStyles}</style>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
-        <Link to="/" style={{
-          fontSize: '1.4rem',
-          fontWeight: '900',
-          color: 'white',
-          textDecoration: 'none',
-          letterSpacing: '-0.02em'
-        }}>
-          Stock<span style={{ color: '#00d2ff' }}>Whiz</span>
+    <nav className="navbar">
+      <div className="nav-left">
+        <Link to="/" className="logo">
+          Stock<span>Whiz</span>
         </Link>
 
         {/* Search Bar & Refresh */}
-        <div ref={searchRef} style={{ display: 'flex', gap: '15px', alignItems: 'center', position: 'relative' }}>
-          <form onSubmit={handleSearch} style={{ position: 'relative' }}>
+        <div ref={searchRef} className="search-container">
+          <form onSubmit={handleSearch} style={{ position: 'relative', width: '100%' }}>
             <input
               type="text"
               placeholder="Search markets..."
@@ -185,18 +167,6 @@ function Navbar({ username, onLogout }) {
                 setShowSuggestions(true);
               }}
               onFocus={() => setShowSuggestions(true)}
-              style={{
-                padding: '10px 18px',
-                paddingRight: '45px',
-                borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.1)',
-                width: '280px',
-                background: 'rgba(255,255,255,0.03)',
-                color: 'white',
-                outline: 'none',
-                fontSize: '0.9rem',
-                transition: 'all 0.3s ease'
-              }}
               className="search-input"
             />
             <button
@@ -226,6 +196,7 @@ function Navbar({ username, onLogout }) {
             style={{
               width: '40px',
               height: '40px',
+              minWidth: '40px',
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.03)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -310,29 +281,37 @@ function Navbar({ username, onLogout }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-        <div style={{ display: 'flex', gap: '25px', fontSize: '0.9rem', fontWeight: '600' }}>
-          <Link to="/" style={linkStyle("/")} onMouseOver={(e) => !isActive("/") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/") && (e.target.style.color = '#94a3b8')}>
-            Home
-            {isActive("/") && <div style={activeUnderline}></div>}
-          </Link>
-          <Link to="/sectors" style={linkStyle("/sectors")} onMouseOver={(e) => !isActive("/sectors") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/sectors") && (e.target.style.color = '#94a3b8')}>
-            Sectors
-            {isActive("/sectors") && <div style={activeUnderline}></div>}
-          </Link>
-          <Link to="/compare" style={linkStyle("/compare")} onMouseOver={(e) => !isActive("/compare") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/compare") && (e.target.style.color = '#94a3b8')}>
-            Compare Stocks
-            {isActive("/compare") && <div style={activeUnderline}></div>}
-          </Link>
-          <Link to="/gold-silver" style={linkStyle("/gold-silver")} onMouseOver={(e) => !isActive("/gold-silver") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/gold-silver") && (e.target.style.color = '#94a3b8')}>
-            Gold Silver Analysis
-            {isActive("/gold-silver") && <div style={activeUnderline}></div>}
-          </Link>
-          <Link to="/portfolio" style={linkStyle("/portfolio")} onMouseOver={(e) => !isActive("/portfolio") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/portfolio") && (e.target.style.color = '#94a3b8')}>
-            My Portfolio
-            {isActive("/portfolio") && <div style={activeUnderline}></div>}
-          </Link>
-        </div>
+      <div className={`nav-links ${isMobileMenuOpen ? 'active' : ''}`}>
+        <Link to="/" style={linkStyle("/")} onClick={() => setIsMobileMenuOpen(false)} onMouseOver={(e) => !isActive("/") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/") && (e.target.style.color = '#94a3b8')}>
+          Home
+          {isActive("/") && <div style={activeUnderline}></div>}
+        </Link>
+        <Link to="/sectors" style={linkStyle("/sectors")} onClick={() => setIsMobileMenuOpen(false)} onMouseOver={(e) => !isActive("/sectors") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/sectors") && (e.target.style.color = '#94a3b8')}>
+          Sectors
+          {isActive("/sectors") && <div style={activeUnderline}></div>}
+        </Link>
+        <Link to="/compare" style={linkStyle("/compare")} onClick={() => setIsMobileMenuOpen(false)} onMouseOver={(e) => !isActive("/compare") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/compare") && (e.target.style.color = '#94a3b8')}>
+          Compare Stocks
+          {isActive("/compare") && <div style={activeUnderline}></div>}
+        </Link>
+        <Link to="/gold-silver" style={linkStyle("/gold-silver")} onClick={() => setIsMobileMenuOpen(false)} onMouseOver={(e) => !isActive("/gold-silver") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/gold-silver") && (e.target.style.color = '#94a3b8')}>
+          Gold Silver Analysis
+          {isActive("/gold-silver") && <div style={activeUnderline}></div>}
+        </Link>
+        <Link to="/portfolio" style={linkStyle("/portfolio")} onClick={() => setIsMobileMenuOpen(false)} onMouseOver={(e) => !isActive("/portfolio") && (e.target.style.color = 'white')} onMouseOut={(e) => !isActive("/portfolio") && (e.target.style.color = '#94a3b8')}>
+          My Portfolio
+          {isActive("/portfolio") && <div style={activeUnderline}></div>}
+        </Link>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }} className="nav-right">
+        {/* Mobile Menu Toggle */}
+        <button 
+          className="mobile-toggle"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? "✕" : "☰"}
+        </button>
 
         {/* Creative Unified Auth Button */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
@@ -359,6 +338,7 @@ function Navbar({ username, onLogout }) {
               <div style={{
                 width: '36px',
                 height: '36px',
+                minWidth: '36px',
                 background: 'linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%)',
                 borderRadius: '50%',
                 display: 'flex',
@@ -371,7 +351,7 @@ function Navbar({ username, onLogout }) {
               }}>
                 {username.charAt(0).toUpperCase()}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', marginRight: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', marginRight: '8px' }} className="user-info-text">
                 <span style={{ color: 'white', fontSize: '0.85rem', fontWeight: '800', lineHeight: 1 }}>{username}</span>
                 <span style={{ color: '#00d2ff', fontSize: '0.65rem', fontWeight: '700', textTransform: 'uppercase', marginTop: '2px' }}>Member</span>
               </div>
@@ -428,7 +408,7 @@ function Navbar({ username, onLogout }) {
                 e.currentTarget.style.transform = 'translateY(0) scale(1)';
                 e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 210, 255, 0.3)';
               }}>
-                <span style={{ color: 'white', fontWeight: '900', fontSize: '0.9rem', letterSpacing: '0.02em' }}>GET STARTED</span>
+                <span style={{ color: 'white', fontWeight: '900', fontSize: '0.9rem', letterSpacing: '0.02em' }} className="get-started-text">GET STARTED</span>
                 <div style={{
                   width: '24px',
                   height: '24px',

@@ -16,14 +16,14 @@ function Sectors() {
   }, []);
 
   return (
-    <div style={{
-      padding: '40px',
+    <div className="page-container" style={{
+      padding: '20px',
       background: '#f4f7f6',
       minHeight: '100vh',
       fontFamily: "'Inter', sans-serif"
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <h2 style={{ fontSize: '2.5rem', color: '#1a1a1a', marginBottom: '30px', fontWeight: '800' }}>
+        <h2 className="section-title" style={{ fontSize: '2.2rem', color: '#1a1a1a', marginBottom: '30px', fontWeight: '800' }}>
           Industry <span style={{ color: '#00d2ff' }}>Sectors</span>
         </h2>
         

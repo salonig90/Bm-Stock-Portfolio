@@ -41,7 +41,7 @@ function Sector() {
   if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Loading stocks...</div>;
 
   return (
-    <div style={{ padding: '40px', background: '#f4f7f6', minHeight: '100vh' }}>
+    <div className="page-container" style={{ padding: '20px', background: '#f4f7f6', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <button 
           onClick={() => navigate("/sectors")}
@@ -50,7 +50,7 @@ function Sector() {
           ← Back to Sectors
         </button>
         
-        <h2 style={{ fontSize: '2.5rem', color: '#1a1a1a', marginBottom: '30px', fontWeight: '800' }}>
+        <h2 className="section-title" style={{ fontSize: '2.2rem', color: '#1a1a1a', marginBottom: '30px', fontWeight: '800' }}>
           Stocks in <span style={{ color: '#00d2ff' }}>{name}</span>
         </h2>
 

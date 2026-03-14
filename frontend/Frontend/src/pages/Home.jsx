@@ -61,7 +61,8 @@ const Home = () => {
       fontFamily: "'Inter', 'Segoe UI', Roboto, sans-serif",
       color: '#1a202c',
       backgroundColor: '#f7fafc',
-      overflowX: 'hidden'
+      overflowX: 'hidden',
+      width: '100%'
     }}>
       {/* Market Ticker at the Top */}
       <div style={{ 
@@ -74,7 +75,8 @@ const Home = () => {
         top: 0,
         zIndex: 100,
         display: 'flex',
-        boxShadow: 'inset 0 0 20px rgba(0, 210, 255, 0.05)'
+        boxShadow: 'inset 0 0 20px rgba(0, 210, 255, 0.05)',
+        width: '100%'
       }}>
         <div className="ticker-content" style={{ display: 'inline-block', animation: 'ticker 40s linear infinite' }}>
           {[
@@ -182,13 +184,13 @@ const Home = () => {
           maxWidth: '1400px',
           width: '100%',
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
           gap: '60px',
           alignItems: 'center',
           zIndex: 1
         }}>
           {/* Left Content */}
-          <div style={{ animation: 'fadeInLeft 1s ease-out', textAlign: 'left', marginTop: '-80px' }}>
+          <div className="hero-content" style={{ animation: 'fadeInLeft 1s ease-out', textAlign: 'left' }}>
             <h1 style={{ 
               fontSize: 'clamp(2.5rem, 4vw, 4rem)', 
               fontWeight: '900', 
@@ -252,9 +254,8 @@ const Home = () => {
           </div>
 
           {/* Right Visual Area - Creative Layout */}
-          <div style={{ 
+          <div className="hero-visual" style={{ 
             position: 'relative', 
-            height: '600px', 
             animation: 'fadeInRight 1s ease-out', 
             display: 'flex', 
             flexDirection: 'column', 
@@ -265,7 +266,7 @@ const Home = () => {
             width: '100%'
           }}>
             {/* Top Row: Stock & Gainers */}
-            <div style={{ display: 'flex', gap: '20px', width: '100%', height: '220px' }}>
+            <div className="hero-cards-row" style={{ display: 'flex', gap: '20px', width: '100%' }}>
               {/* Card 1: Dynamic Stock Rotation */}
               <div className="floating-card" style={{
                 flex: 1,
@@ -574,7 +575,7 @@ const Home = () => {
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
       }}>
-        <div style={{ 
+        <div className="cta-box" style={{ 
           maxWidth: '800px', 
           margin: '0 auto', 
           padding: '80px 40px', 
