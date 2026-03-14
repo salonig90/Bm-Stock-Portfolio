@@ -13,6 +13,33 @@ StockWhiz is a full-stack web application designed for data-driven investing. It
 - **Secure Staff Authentication**: Custom token-based authentication system using cryptographic signing for secure staff access.
 - **Modern UI**: Fullscreen, responsive design with glassmorphism elements, custom animations, and a professional aesthetic.
 
+## 🌐 Live Demo & Deployment
+
+**Live Website:** [https://stockwhizai.duckdns.org/](https://stockwhizai.duckdns.org/)
+
+### 🏗️ Architecture & CI/CD Flow
+
+```text
+Developer PC 
+      │ 
+      │ git push 
+      ▼ 
+ GitHub 
+      │ 
+      ▼ 
+ GitHub Actions CI/CD 
+      │ 
+      ▼ 
+ Azure VM 
+      │ 
+      ├── Django (backend) 
+      ├── React (frontend build) 
+      └── Nginx (web server) 
+      │ 
+      ▼ 
+ Live Website 
+```
+
 ## 🛠️ Tech Stack
 
 **Frontend:**
@@ -35,7 +62,7 @@ StockWhiz is a full-stack web application designed for data-driven investing. It
 ### Prerequisites
 - Python 3.13.x
 - Node.js & npm
-- PM2 (Optional, for production-like deployment)
+- systemd (production-like deployment)
 
 ### Backend Setup
 1. Navigate to the backend directory:
@@ -82,23 +109,10 @@ StockWhiz is a full-stack web application designed for data-driven investing. It
    npm run dev
    ```
 
-## � Deployment with PM2
 
-To keep the services running in the background:
+cd backend/Portfolio_
 
-**Backend:**
-```bash
-cd backend/Portfolio_Project
-pm2 start venv\Scripts\python.exe --name stockwhiz-backend -- manage.py runserver 0.0.0.0:8000
-```
-
-**Frontend:**
-```bash
-cd frontend/Frontend
-pm2 start npm --name stockwhiz-frontend -- run dev -- --host
-```
-
-## �🔐 Authentication & Access
+## 🔐 Authentication & Access
 
 - **Default User**: `user` / `user` (Staff account)
 - **Staff Signup**: Create a new account with **Name**, **Phone**, **Email**, and **Username** via the `/signup` route.
